@@ -1,0 +1,28 @@
+# Ignore all files in the data directory
+# Ignore all files in the resources directory
+
+data/
+resources/
+
+
+# Ignore specific files in the root directory
+*.log
+*.tmp
+*.bak
+
+
+# Ignore backup files
+*.DS_Store
+
+
+# Ignore JetBrains IDE configuration directories
+*.vscode/
+
+# Ignore Python cache files
+__pycache__/
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+# Ignore Python virtual environment directories
+venv/
+# Ignore Python bytecode files
+*.pyc

@@ -1,0 +1,20 @@
+MLST: true # Options: true, false
+# If true, the MLST module will be enabled.
+# If false, the MLST module will be disabled.
+# Note: This configuration file is used to enable or disable the MLST module.
+
+antibiotic_resistance: true # Options: true, false
+# If true, the antibiotic resistance module will be enabled.
+# If false, the antibiotic resistance module will be disabled.
+# Note: This configuration file is used to enable or disable the antibiotic resistance module.
+
+virulence_factors: true # Options: true, false
+# If true, the virulence factors module will be enabled.
+# If false, the virulence factors module will be disabled.
+# Note: This configuration file is used to enable or disable the virulence factors module.
+
+plasmids: true # Options: true, false
+# If true, the plasmids module will be enabled.
+# If false, the plasmids module will be disabled.
+# Note: This configuration file is used to enable or disable the plasmids module.
+
