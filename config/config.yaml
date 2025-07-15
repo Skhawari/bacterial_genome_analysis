@@ -1,3 +1,72 @@
+samples: "config/samples.tsv"
+long_read_samples: "config/samples_long_read.tsv"
+long_read_blacklist: "config/blacklist.txt"
+complete_blacklist: "config/complete_blacklist.txt"
+
+# Quality control parameters
+fastp:
+  extra: "--detect_adapter_for_pe --correction --cut_right --cut_right_window_size 4 --cut_right_mean_quality 15 --length_required 36"
+
+filtlong:
+  min_length: 1000
+  keep_percent: 90
+  target_bases: 500000000
+
+# Assembly parameters
+assembly:
+  mode: "hybrid"  # Options: "hybrid", "short"
+  
+  # SPAdes-specific options
+  spades:
+    extra: "--isolate --cov-cutoff auto"  # SPAdes command line options
+  
+  #
+  # SPAdes Extra Options:
+  #
+  # You can specify any SPAdes command line options in the 'extra' field.
+  # 
+  # Common options:
+  #   --isolate: Optimized for bacterial isolate genomes (recommended)
+  #   --careful: Reduces mismatches and short indels (NOT compatible with --isolate)
+  #   --cov-cutoff auto: Automatic coverage filtering (recommended)
+  #   --cov-cutoff off: No coverage filtering
+  #   --cov-cutoff 5.0: Manual coverage cutoff
+  #   --only-assembler: Skip error correction (faster, lower quality)
+  #   -k 21,33,55,77: Custom k-mer sizes
+  #
+  # NOTE: --careful and --isolate cannot be used together!
+  #
+  # Examples:
+  #   Isolate mode (recommended): "--isolate --cov-cutoff auto"
+  #   Standard mode with careful: "--careful --cov-cutoff auto"
+  #   Fast assembly: "--isolate --cov-cutoff 5.0"
+  #   Custom k-mers: "--isolate -k 21,33,55,77,99"
+  #
+  # Assembly mode logic:
+  # 
+  # "hybrid" mode (recommended):
+  #   - Uses hybrid assembly (short + long reads) when:
+  #     * Sample has long reads available AND
+  #     * Sample is NOT in the long_read_blacklist file
+  #   - Automatically falls back to short-read only when:
+  #     * Sample is in long_read_blacklist (low coverage long reads) OR
+  #     * Sample has no long reads available
+  #
+  # "short" mode:
+  #   - Forces ALL samples to use short-read only assembly
+  #   - Ignores long reads completely, even if available
+  #
+  # Example scenarios with mode="hybrid":
+  #   - sample1: in long_read_blacklist → short-read only (due to low coverage)
+  #   - sample2-5: not blacklisted + has long reads → hybrid assembly  
+  #   - sample6: not blacklisted but no long reads → short-read only
+  #
+  # BLACKLIST SYSTEM:
+  # 1. long_read_blacklist: Excludes samples from using long reads (falls back to short-read assembly)
+  # 2. complete_blacklist: Excludes samples from ALL analysis after QC (no assembly, no downstream analysis)
+  #
+  # The blacklists allow you to exclude specific samples while keeping others in the workflow.
+
 MLST: true # Options: true, false
 # If true, the MLST module will be enabled.
 # If false, the MLST module will be disabled.
@@ -17,4 +86,107 @@ plasmids: true # Options: true, false
 # If true, the plasmids module will be enabled.
 # If false, the plasmids module will be disabled.
 # Note: This configuration file is used to enable or disable the plasmids module.
+
+# Annotation parameters
+annotation:
+  genus: "Klebsiella"
+  species: "pneumoniae"
+  kingdom: "Bacteria"      # Kingdom: "Bacteria", "Archaea", or "Viruses" 
+  centre: "Assembly_Pipeline"  # Sequencing centre name for GenBank files
+  mincontiglen: 200        # Minimum contig length to annotate (bp)
+  evalue: 1e-06           # E-value threshold for similarity searches
+  
+  # Optional advanced parameters (leave empty "" to disable):
+  proteins: ""            # Path to custom protein FASTA database
+  hmms: ""               # Path to custom HMM database
+  
+  # Note: --gram option requires SignalP (commercial license) and is disabled
+  # Note: These can be customized for different bacterial species
+  # Examples:
+  #   E. coli: genus: "Escherichia", species: "coli"
+  #   S. aureus: genus: "Staphylococcus", species: "aureus"
+
+# Comparative genomics parameters
+comparative:
+  # Core genome clustering with Roary
+  identity_threshold: 95    # Minimum percentage identity for blastp (default: 95)
+  core_definition: 99       # Percentage of isolates a gene must be in to be core (default: 99)
+  
+  # Roary extra command line options
+  extra: "-e -n -v"        # Additional Roary command line options
+  
+  # Optional outgroup genome for phylogenetic analysis
+  # Provide the path to an assembled genome (GFF file) to use as outgroup
+  # This genome will be included in the pan-genome analysis and phylogeny
+  outgroup_gff: ""         # Path to outgroup GFF file (leave empty if no outgroup)
+  outgroup_name: "outgroup" # Name for the outgroup sample (used in output files)
+  
+  #
+  # Roary Extra Options:
+  #
+  # You can specify any Roary command line options in the 'extra' field.
+  # 
+  # Common options:
+  #   -e: Create a multiFASTA alignment of core genes using PRANK
+  #   -n: Fast core gene alignment using MAFFT (faster than -e)
+  #   -v: Verbose output
+  #   -s: Don't split paralogs
+  #   -ap: Allow paralogs (overrides -s)
+  #   -z: Don't delete intermediate files (for debugging)
+  #   -r: Create R plots (requires R with ggplot2)
+  #   -iv <file>: Path to file with names of isolates to use for core genome
+  #
+  # Examples:
+  #   Standard: "-e -n -v" (recommended - creates core alignment with verbose output)
+  #   Fast: "-n -v" (MAFFT alignment, faster)
+  #   Debug: "-e -n -v -z" (keep intermediate files)
+  #   With R plots: "-e -n -v -r" (if R/ggplot2 available)
+  #
+  
+  # Examples:
+  # outgroup_gff: "data/reference_genomes/reference_strain.gff"
+  # outgroup_name: "reference_ATCC"
+  
+  # Note: The outgroup should be an annotated genome in GFF format
+  # produced by Prokka or compatible annotation tool
+
+# Phylogenetic analysis parameters
+phylogeny:
+  # Model selection method for IQ-TREE
+  model_selection: "MFP"     # Model finder plus (automatic model selection)
+  
+  # Bootstrap support assessment
+  bootstrap_replicates: 1000  # Number of ultrafast bootstrap replicates
+  
+  # Optional outgroup for rooting the tree
+  outgroup: ""               # Sample name to use as outgroup (leave empty for unrooted tree)
+  
+  # Additional IQ-TREE command line options
+  extra: ""                  # Additional IQ-TREE parameters
+  
+  #
+  # IQ-TREE Model Selection Options:
+  #
+  # model_selection options:
+  #   "MFP": ModelFinder Plus - automatic model selection (recommended)
+  #   "GTR+G": General Time Reversible + Gamma rate variation
+  #   "HKY+G": Hasegawa-Kishino-Yano + Gamma
+  #   "JC": Jukes-Cantor (simplest)
+  #   "TEST": Test all available models and pick best
+  #
+  # bootstrap_replicates:
+  #   1000: Standard number for publication (recommended)
+  #   100: Faster for testing
+  #   0: No bootstrap (much faster, no support values)
+  #
+  # Extra options examples:
+  #   "-alrt 1000": SH-aLRT test in addition to bootstrap
+  #   "-wbtl": Write bootstrap trees to file
+  #   "-seed 12345": Set random seed for reproducibility
+  #   "-fast": Fast mode (less thorough search)
+  #
+  # Examples:
+  #   outgroup: "sample_reference"  # Use sample_reference as outgroup
+  #   extra: "-alrt 1000 -seed 12345"  # Add SH-aLRT test with fixed seed
+  #
 

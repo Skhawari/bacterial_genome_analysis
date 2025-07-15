@@ -1,0 +1,13 @@
+# Complete sample blacklist - samples to exclude from ALL analysis after QC
+# These samples will be processed through QC but excluded from assembly and downstream analysis
+# One sample ID per line
+# 
+# Example usage:
+# - Poor quality samples that failed QC thresholds
+# - Contaminated samples
+# - Samples with insufficient coverage
+# - Control samples not needed for comparative analysis
+#
+# Uncomment and add sample names as needed:
+# sample6
+# sample7

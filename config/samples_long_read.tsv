@@ -1,0 +1,6 @@
+sample	long_read
+sample1	ressources/data/SET1/sample1_MinION_sequencing.fastq.gz
+sample2	ressources/data/SET1/sample2_MinION_sequencing.fastq.gz
+sample3	ressources/data/SET1/sample3_MinION_sequencing.fastq.gz
+sample4	ressources/data/SET1/sample4_MinION_sequencing.fastq.gz
+sample5	ressources/data/SET1/sample5_MinION_sequencing.fastq.gz

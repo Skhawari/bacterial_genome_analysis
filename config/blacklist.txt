@@ -1,0 +1,5 @@
+# Blacklist for samples to exclude from LONG-READ analysis only
+# These samples will still be processed with short reads
+# One sample ID per line
+# Reason: sample1 has low long-read coverage (5x) - use short-read only assembly
+sample1

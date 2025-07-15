@@ -1,0 +1,14 @@
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - fastqc=0.12.1
+  - fastp=0.23.4
+  - multiqc=1.19
+  - nanoplot=1.41.0
+  - nanostat=1.6.0
+  - filtlong=0.2.1
+  - python=3.10
+  - pandas=2.2.2
+  - snakemake-wrapper-utils

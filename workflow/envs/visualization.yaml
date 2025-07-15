@@ -1,0 +1,19 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.9
+  - pandas>=1.5
+  - matplotlib>=3.5
+  - seaborn>=0.11
+  - plotly>=5.0
+  - python-kaleido  # For plotly PDF export
+  - jinja2>=3.0
+  - biopython>=1.80
+  - numpy>=1.20
+  - scipy>=1.8  # For statistical analysis
+  - pyyaml>=6.0  # For YAML config parsing
+  - pip
+  - pip:
+    - weasyprint  # Install via pip for better compatibility
