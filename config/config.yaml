@@ -4,6 +4,9 @@ long_read_blacklist: "config/blacklist.txt"
 complete_blacklist: "config/complete_blacklist.txt"
 
 # Quality control parameters
+fastqc:
+  extra: "--noextract --nogroup"
+  
 fastp:
   extra: "--detect_adapter_for_pe --correction --cut_right --cut_right_window_size 4 --cut_right_mean_quality 15 --length_required 36"
 
@@ -67,25 +70,27 @@ assembly:
   #
   # The blacklists allow you to exclude specific samples while keeping others in the workflow.
 
-MLST: true # Options: true, false
-# If true, the MLST module will be enabled.
-# If false, the MLST module will be disabled.
-# Note: This configuration file is used to enable or disable the MLST module.
 
-antibiotic_resistance: true # Options: true, false
-# If true, the antibiotic resistance module will be enabled.
-# If false, the antibiotic resistance module will be disabled.
-# Note: This configuration file is used to enable or disable the antibiotic resistance module.
+# downstream analysis parameters
+pipeline:
+  run_downstream: true # Options: true, false
+  run_mlst:      true # Options: true, false
+  run_amr:       true # Options: true, false
+  run_virulence: true # Options: true, false
+  run_plasmid:   true # Options: true, false
 
-virulence_factors: true # Options: true, false
-# If true, the virulence factors module will be enabled.
-# If false, the virulence factors module will be disabled.
-# Note: This configuration file is used to enable or disable the virulence factors module.
+mlst:
+  scheme: "ecoli" # Options: "ecoli", "klebsiella", "salmonella", etc.
 
-plasmids: true # Options: true, false
-# If true, the plasmids module will be enabled.
-# If false, the plasmids module will be disabled.
-# Note: This configuration file is used to enable or disable the plasmids module.
+amr:
+  extra: ""       # Options: "" (default), "--card" (for CARD database), "--resfinder" (for ResFinder database)
+
+virulence:
+  extra: ""      # Options: "" (default), "--virulencefinder" (for VirulenceFinder database)
+
+plasmid:
+  extra: ""      # Options: "" (default), "--plasmidfinder" (for PlasmidFinder database)
+
 
 # Annotation parameters
 annotation:

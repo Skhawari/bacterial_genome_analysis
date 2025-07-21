@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }}</title>
+</head>
+<body>
+  <h1>{{ title }}</h1>
+  <h2>1. QC Report</h2>
+  <iframe src="{{ qc_iframe }}" width="100%" height="600px"></iframe>
+
+  <h2>2. Assembly QA</h2>
+  <iframe src="{{ assembly_iframe }}" width="100%" height="600px"></iframe>
+
+  <h2>3. Comparative Genomics</h2>
+  <iframe src="{{ comp_iframe }}" width="100%" height="600px"></iframe>
+
+  <h2>4. Phylogenetic Analysis</h2>
+  <iframe src="{{ phylo_iframe }}" width="100%" height="600px"></iframe>
+
+  <h2>5. Downstream Summary</h2>
+  {% for sheet, df in downstream_tables.items() %}
+    <h3>{{ sheet }}</h3>
+    {{ df.to_html(index=False) }}
+  {% endfor %}
+</body>
+</html>

@@ -52,6 +52,17 @@ def get_assembly_mode_for_sample(sample):
     
     return "hybrid"  # Sample has long reads and is not blacklisted - use hybrid
 
+# Nach prokka
+if config["pipeline"]["run_downstream"] == True:
+    include: "rules/downstream.smk"
+
+if config["pipeline"]["run_downstream"]:
+            final_targets += expand("downstream/mlst/{sample}.txt",      sample=DS_SAMPLES)
+            final_targets += expand("downstream/amr/{sample}.tsv",       sample=DS_SAMPLES)
+            final_targets += expand("downstream/virulence/{sample}.tsv", sample=DS_SAMPLES)
+            final_targets += expand("downstream/plasmid/{sample}/mob_recon_report.tsv", sample=DS_SAMPLES)
+            final_targets += ["downstream/summary.xlsx"]
+
 
 include: "rules/qc.smk"
 include: "rules/assembly.smk"
@@ -60,6 +71,7 @@ include: "rules/prokka.smk"
 include: "rules/visualization.smk"
 include: "rules/comparative.smk"
 include: "rules/phylogeny.smk"
+include: "rules/reporting.smk"
 
 rule all:
     input:
@@ -71,6 +83,8 @@ rule all:
         # Annotation outputs
         expand("results/annotation/{sample}/{sample}.gff", sample=ASSEMBLY_SAMPLES),
         expand("results/annotation/{sample}/{sample}.gtf", sample=ASSEMBLY_SAMPLES),
+        # downstream analysis outputs
+        final_targets,
         # Visualization outputs
         "results/visualization/prokka_annotation_report.html",
         "results/visualization/prokka_annotation_report.pdf",
@@ -93,7 +107,8 @@ rule all:
         "results/assembly/assembly_summary.txt",
         "results/assembly_multiqc/assembly_multiqc_report.html",
         # QC report for ALL samples (including blacklisted ones)
-        "results/multiqc/multiqc_report.html"
+        "results/multiqc/multiqc_report.html",
+        "reports/final_report.html"
 
 
 

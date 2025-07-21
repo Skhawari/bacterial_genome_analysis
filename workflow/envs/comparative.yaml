@@ -5,13 +5,12 @@ channels:
 dependencies:
   - roary=3.13.0
   - python=3.7  # Roary works best with Python 3.7
-  - biopython
-  - pandas
-  - matplotlib
-  - seaborn
-  - numpy
-  - scipy
-  - jinja2
-  - pip
+  - biopython=1.79
+  - pandas=1.4.2
+  - numpy=1.22.3
+  - scipy=1.8.0
+  - matplotlib=3.5.2
+  - seaborn=0.11.2
+  - jinja2=3.0.3
   - pip:
-    - plotly
+    - plotly==5.6.0

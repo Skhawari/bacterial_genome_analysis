@@ -14,7 +14,7 @@ rule fastqc_raw:
         "../envs/qc.yaml"
     shell:
         """
-        fastqc --threads {threads} --outdir results/fastqc_raw {input.fq} > {log} 2>&1
+        fastqc --threads {threads} {config[fastqc][extra]} --outdir results/fastqc_raw {input.fq} > {log} 2>&1
         """
 
 rule fastp:
@@ -61,6 +61,7 @@ rule nanostat_raw:
         stats = "results/nanostat_raw/{sample}.txt"
     log:
         "logs/nanostat_raw/{sample}.log"
+    threads: 1
     conda:
         "../envs/qc.yaml"
     shell:
@@ -75,6 +76,7 @@ rule nanostat_filtered:
         stats = "results/nanostat_filtered/{sample}.txt"
     log:
         "logs/nanostat_filtered/{sample}.log"
+    threads: 1
     conda:
         "../envs/qc.yaml"
     shell:
