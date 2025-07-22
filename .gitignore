@@ -4,7 +4,11 @@
 data/
 resources/
 new_code/
-
+.snakemake/
+results/
+logs/
+databases/
+busco_downloads/
 
 # Ignore specific files in the root directory
 *.log

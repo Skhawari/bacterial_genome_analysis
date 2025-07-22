@@ -47,7 +47,7 @@ quast:
 
 busco:
   mode: "lineage"  # Options: "lineage", "single-copy", "complete", "fragmented", "missing"
-  lineage: "bacteria_odb10"  # Options: "bacteria_odb10", "fungi_odb10", etc.
+  lineage: "auto"  # Options: "bacteria_odb10", "fungi_odb10", "auto" (auto-detect)
   extra: "--force --offline"  # Additional BUSCO options
   # --force: Force re-run even if previous results exist
   # --offline: Run BUSCO in offline mode (no internet access)
@@ -109,7 +109,7 @@ pipeline:
   run_plasmid:   true # Options: true, false
 
 mlst:
-  scheme: "ecoli" # Options: "ecoli", "klebsiella", "salmonella", etc.
+  scheme: "klebsiella" # Options: "ecoli", "klebsiella", "salmonella", "staphylococcus", "streptococcus", "auto"
 
 amr:
   extra: ""       # Options: "" (default), "--card" (for CARD database), "--resfinder" (for ResFinder database)

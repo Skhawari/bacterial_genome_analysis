@@ -1,0 +1,326 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "all", color = "0.04 0.6 0.85", style="rounded"];
+	1[label = "spades_hybrid", color = "0.62 0.6 0.85", style="rounded"];
+	2[label = "fastp\nsample: sample1", color = "0.17 0.6 0.85", style="rounded"];
+	3[label = "spades_hybrid", color = "0.62 0.6 0.85", style="rounded"];
+	4[label = "fastp\nsample: sample2", color = "0.17 0.6 0.85", style="rounded"];
+	5[label = "spades_hybrid", color = "0.62 0.6 0.85", style="rounded"];
+	6[label = "fastp\nsample: sample3", color = "0.17 0.6 0.85", style="rounded"];
+	7[label = "spades_hybrid", color = "0.62 0.6 0.85", style="rounded"];
+	8[label = "fastp\nsample: sample4", color = "0.17 0.6 0.85", style="rounded"];
+	9[label = "spades_hybrid", color = "0.62 0.6 0.85", style="rounded"];
+	10[label = "fastp\nsample: sample5", color = "0.17 0.6 0.85", style="rounded"];
+	11[label = "quast_assembly_qc", color = "0.56 0.6 0.85", style="rounded"];
+	12[label = "quast_assembly_qc", color = "0.56 0.6 0.85", style="rounded"];
+	13[label = "quast_assembly_qc", color = "0.56 0.6 0.85", style="rounded"];
+	14[label = "quast_assembly_qc", color = "0.56 0.6 0.85", style="rounded"];
+	15[label = "quast_assembly_qc", color = "0.56 0.6 0.85", style="rounded"];
+	16[label = "busco_completeness", color = "0.10 0.6 0.85", style="rounded"];
+	17[label = "busco_download", color = "0.12 0.6 0.85", style="rounded"];
+	18[label = "busco_completeness", color = "0.10 0.6 0.85", style="rounded"];
+	19[label = "busco_completeness", color = "0.10 0.6 0.85", style="rounded"];
+	20[label = "busco_completeness", color = "0.10 0.6 0.85", style="rounded"];
+	21[label = "busco_completeness", color = "0.10 0.6 0.85", style="rounded"];
+	22[label = "prokka_annotation", color = "0.52 0.6 0.85", style="rounded"];
+	23[label = "prokka_annotation", color = "0.52 0.6 0.85", style="rounded"];
+	24[label = "prokka_annotation", color = "0.52 0.6 0.85", style="rounded"];
+	25[label = "prokka_annotation", color = "0.52 0.6 0.85", style="rounded"];
+	26[label = "prokka_annotation", color = "0.52 0.6 0.85", style="rounded"];
+	27[label = "prokka_visualization", color = "0.54 0.6 0.85", style="rounded"];
+	28[label = "enhanced_data_visualization", color = "0.15 0.6 0.85", style="rounded"];
+	29[label = "assembly_summary", color = "0.08 0.6 0.85", style="rounded"];
+	30[label = "roary_pangenome", color = "0.58 0.6 0.85", style="rounded"];
+	31[label = "roary_visualization", color = "0.60 0.6 0.85", style="rounded"];
+	32[label = "prepare_phylogeny_input", color = "0.50 0.6 0.85", style="rounded"];
+	33[label = "iqtree_phylogeny", color = "0.25 0.6 0.85", style="rounded"];
+	34[label = "phylogeny_visualization", color = "0.44 0.6 0.85", style="rounded"];
+	35[label = "multiqc_assembly", color = "0.35 0.6 0.85", style="rounded"];
+	36[label = "multiqc", color = "0.33 0.6 0.85", style="rounded"];
+	37[label = "fastqc_raw\nidx: 1\nsample: sample1", color = "0.19 0.6 0.85", style="rounded"];
+	38[label = "fastqc_raw\nidx: 2\nsample: sample1", color = "0.19 0.6 0.85", style="rounded"];
+	39[label = "fastqc_raw\nidx: 1\nsample: sample2", color = "0.19 0.6 0.85", style="rounded"];
+	40[label = "fastqc_raw\nidx: 2\nsample: sample2", color = "0.19 0.6 0.85", style="rounded"];
+	41[label = "fastqc_raw\nidx: 1\nsample: sample3", color = "0.19 0.6 0.85", style="rounded"];
+	42[label = "fastqc_raw\nidx: 2\nsample: sample3", color = "0.19 0.6 0.85", style="rounded"];
+	43[label = "fastqc_raw\nidx: 1\nsample: sample4", color = "0.19 0.6 0.85", style="rounded"];
+	44[label = "fastqc_raw\nidx: 2\nsample: sample4", color = "0.19 0.6 0.85", style="rounded"];
+	45[label = "fastqc_raw\nidx: 1\nsample: sample5", color = "0.19 0.6 0.85", style="rounded"];
+	46[label = "fastqc_raw\nidx: 2\nsample: sample5", color = "0.19 0.6 0.85", style="rounded"];
+	47[label = "fastqc_trimmed\nidx: 1", color = "0.21 0.6 0.85", style="rounded"];
+	48[label = "fastqc_trimmed\nidx: 2", color = "0.21 0.6 0.85", style="rounded"];
+	49[label = "fastqc_trimmed\nidx: 1", color = "0.21 0.6 0.85", style="rounded"];
+	50[label = "fastqc_trimmed\nidx: 2", color = "0.21 0.6 0.85", style="rounded"];
+	51[label = "fastqc_trimmed\nidx: 1", color = "0.21 0.6 0.85", style="rounded"];
+	52[label = "fastqc_trimmed\nidx: 2", color = "0.21 0.6 0.85", style="rounded"];
+	53[label = "fastqc_trimmed\nidx: 1", color = "0.21 0.6 0.85", style="rounded"];
+	54[label = "fastqc_trimmed\nidx: 2", color = "0.21 0.6 0.85", style="rounded"];
+	55[label = "fastqc_trimmed\nidx: 1", color = "0.21 0.6 0.85", style="rounded"];
+	56[label = "fastqc_trimmed\nidx: 2", color = "0.21 0.6 0.85", style="rounded"];
+	57[label = "nanostat_raw\nsample: sample1", color = "0.40 0.6 0.85", style="rounded"];
+	58[label = "nanostat_raw\nsample: sample2", color = "0.40 0.6 0.85", style="rounded"];
+	59[label = "nanostat_raw\nsample: sample3", color = "0.40 0.6 0.85", style="rounded"];
+	60[label = "nanostat_raw\nsample: sample4", color = "0.40 0.6 0.85", style="rounded"];
+	61[label = "nanostat_raw\nsample: sample5", color = "0.40 0.6 0.85", style="rounded"];
+	62[label = "nanostat_filtered", color = "0.38 0.6 0.85", style="rounded"];
+	63[label = "filtlong_filter\nsample: sample1", color = "0.23 0.6 0.85", style="rounded"];
+	64[label = "nanostat_filtered", color = "0.38 0.6 0.85", style="rounded"];
+	65[label = "filtlong_filter\nsample: sample2", color = "0.23 0.6 0.85", style="rounded"];
+	66[label = "nanostat_filtered", color = "0.38 0.6 0.85", style="rounded"];
+	67[label = "filtlong_filter\nsample: sample3", color = "0.23 0.6 0.85", style="rounded"];
+	68[label = "nanostat_filtered", color = "0.38 0.6 0.85", style="rounded"];
+	69[label = "filtlong_filter\nsample: sample4", color = "0.23 0.6 0.85", style="rounded"];
+	70[label = "nanostat_filtered", color = "0.38 0.6 0.85", style="rounded"];
+	71[label = "filtlong_filter\nsample: sample5", color = "0.23 0.6 0.85", style="rounded"];
+	72[label = "aggregate_final_report", color = "0.02 0.6 0.85", style="rounded"];
+	73[label = "mlst_typing", color = "0.31 0.6 0.85", style="rounded"];
+	74[label = "mlst_typing", color = "0.31 0.6 0.85", style="rounded"];
+	75[label = "mlst_typing", color = "0.31 0.6 0.85", style="rounded"];
+	76[label = "mlst_typing", color = "0.31 0.6 0.85", style="rounded"];
+	77[label = "mlst_typing", color = "0.31 0.6 0.85", style="rounded"];
+	78[label = "amr_screen", color = "0.06 0.6 0.85", style="rounded"];
+	79[label = "amr_screen", color = "0.06 0.6 0.85", style="rounded"];
+	80[label = "amr_screen", color = "0.06 0.6 0.85", style="rounded"];
+	81[label = "amr_screen", color = "0.06 0.6 0.85", style="rounded"];
+	82[label = "amr_screen", color = "0.06 0.6 0.85", style="rounded"];
+	83[label = "virulence_screen", color = "0.65 0.6 0.85", style="rounded"];
+	84[label = "virulence_screen", color = "0.65 0.6 0.85", style="rounded"];
+	85[label = "virulence_screen", color = "0.65 0.6 0.85", style="rounded"];
+	86[label = "virulence_screen", color = "0.65 0.6 0.85", style="rounded"];
+	87[label = "virulence_screen", color = "0.65 0.6 0.85", style="rounded"];
+	88[label = "plasmid_blastn", color = "0.46 0.6 0.85", style="rounded"];
+	89[label = "plasmid_mash_screen", color = "0.48 0.6 0.85", style="rounded"];
+	90[label = "mash_sketch_plasmid_db", color = "0.29 0.6 0.85", style="rounded"];
+	91[label = "makeblastdb_plasmid", color = "0.27 0.6 0.85", style="rounded"];
+	92[label = "plasmid_blastn", color = "0.46 0.6 0.85", style="rounded"];
+	93[label = "plasmid_mash_screen", color = "0.48 0.6 0.85", style="rounded"];
+	94[label = "plasmid_blastn", color = "0.46 0.6 0.85", style="rounded"];
+	95[label = "plasmid_mash_screen", color = "0.48 0.6 0.85", style="rounded"];
+	96[label = "plasmid_blastn", color = "0.46 0.6 0.85", style="rounded"];
+	97[label = "plasmid_mash_screen", color = "0.48 0.6 0.85", style="rounded"];
+	98[label = "plasmid_blastn", color = "0.46 0.6 0.85", style="rounded"];
+	99[label = "plasmid_mash_screen", color = "0.48 0.6 0.85", style="rounded"];
+	1 -> 0
+	3 -> 0
+	5 -> 0
+	7 -> 0
+	9 -> 0
+	11 -> 0
+	12 -> 0
+	13 -> 0
+	14 -> 0
+	15 -> 0
+	16 -> 0
+	18 -> 0
+	19 -> 0
+	20 -> 0
+	21 -> 0
+	22 -> 0
+	23 -> 0
+	24 -> 0
+	25 -> 0
+	26 -> 0
+	27 -> 0
+	28 -> 0
+	30 -> 0
+	31 -> 0
+	32 -> 0
+	33 -> 0
+	34 -> 0
+	29 -> 0
+	35 -> 0
+	36 -> 0
+	72 -> 0
+	73 -> 0
+	74 -> 0
+	75 -> 0
+	76 -> 0
+	77 -> 0
+	78 -> 0
+	79 -> 0
+	80 -> 0
+	81 -> 0
+	82 -> 0
+	83 -> 0
+	84 -> 0
+	85 -> 0
+	86 -> 0
+	87 -> 0
+	88 -> 0
+	92 -> 0
+	94 -> 0
+	96 -> 0
+	98 -> 0
+	2 -> 1
+	4 -> 3
+	6 -> 5
+	8 -> 7
+	10 -> 9
+	1 -> 11
+	3 -> 12
+	5 -> 13
+	7 -> 14
+	9 -> 15
+	1 -> 16
+	17 -> 16
+	3 -> 18
+	17 -> 18
+	5 -> 19
+	17 -> 19
+	7 -> 20
+	17 -> 20
+	9 -> 21
+	17 -> 21
+	1 -> 22
+	3 -> 23
+	5 -> 24
+	7 -> 25
+	9 -> 26
+	22 -> 27
+	23 -> 27
+	24 -> 27
+	25 -> 27
+	26 -> 27
+	11 -> 28
+	12 -> 28
+	13 -> 28
+	14 -> 28
+	15 -> 28
+	16 -> 28
+	18 -> 28
+	19 -> 28
+	20 -> 28
+	21 -> 28
+	22 -> 28
+	23 -> 28
+	24 -> 28
+	25 -> 28
+	26 -> 28
+	29 -> 28
+	11 -> 29
+	12 -> 29
+	13 -> 29
+	14 -> 29
+	15 -> 29
+	16 -> 29
+	18 -> 29
+	19 -> 29
+	20 -> 29
+	21 -> 29
+	22 -> 30
+	23 -> 30
+	24 -> 30
+	25 -> 30
+	26 -> 30
+	30 -> 31
+	30 -> 32
+	32 -> 33
+	33 -> 34
+	32 -> 34
+	11 -> 35
+	12 -> 35
+	13 -> 35
+	14 -> 35
+	15 -> 35
+	16 -> 35
+	18 -> 35
+	19 -> 35
+	20 -> 35
+	21 -> 35
+	37 -> 36
+	38 -> 36
+	39 -> 36
+	40 -> 36
+	41 -> 36
+	42 -> 36
+	43 -> 36
+	44 -> 36
+	45 -> 36
+	46 -> 36
+	47 -> 36
+	48 -> 36
+	49 -> 36
+	50 -> 36
+	51 -> 36
+	52 -> 36
+	53 -> 36
+	54 -> 36
+	55 -> 36
+	56 -> 36
+	2 -> 36
+	4 -> 36
+	6 -> 36
+	8 -> 36
+	10 -> 36
+	57 -> 36
+	58 -> 36
+	59 -> 36
+	60 -> 36
+	61 -> 36
+	62 -> 36
+	64 -> 36
+	66 -> 36
+	68 -> 36
+	70 -> 36
+	2 -> 47
+	2 -> 48
+	4 -> 49
+	4 -> 50
+	6 -> 51
+	6 -> 52
+	8 -> 53
+	8 -> 54
+	10 -> 55
+	10 -> 56
+	63 -> 62
+	65 -> 64
+	67 -> 66
+	69 -> 68
+	71 -> 70
+	36 -> 72
+	35 -> 72
+	31 -> 72
+	34 -> 72
+	1 -> 73
+	3 -> 74
+	5 -> 75
+	7 -> 76
+	9 -> 77
+	1 -> 78
+	3 -> 79
+	5 -> 80
+	7 -> 81
+	9 -> 82
+	1 -> 83
+	3 -> 84
+	5 -> 85
+	7 -> 86
+	9 -> 87
+	1 -> 88
+	89 -> 88
+	91 -> 88
+	1 -> 89
+	90 -> 89
+	3 -> 92
+	93 -> 92
+	91 -> 92
+	3 -> 93
+	90 -> 93
+	5 -> 94
+	95 -> 94
+	91 -> 94
+	5 -> 95
+	90 -> 95
+	7 -> 96
+	97 -> 96
+	91 -> 96
+	7 -> 97
+	90 -> 97
+	9 -> 98
+	99 -> 98
+	91 -> 98
+	9 -> 99
+	90 -> 99
+}            
