@@ -72,13 +72,13 @@ final_targets = [
 ]
 
 if config["pipeline"].get("run_mlst", False):
-    final_targets += expand("downstream/mlst/{sample}.txt", sample=DS_SAMPLES)
+    final_targets += expand("results/downstream/mlst/{sample}.txt", sample=DS_SAMPLES)
 if config["pipeline"].get("run_amr", False):
-    final_targets += expand("downstream/amr/{sample}.tsv", sample=DS_SAMPLES)
+    final_targets += expand("results/downstream/amr/{sample}.tsv", sample=DS_SAMPLES)
 if config["pipeline"].get("run_virulence", False):
-    final_targets += expand("downstream/virulence/{sample}.tsv", sample=DS_SAMPLES)
+    final_targets += expand("results/downstream/virulence/{sample}.tsv", sample=DS_SAMPLES)
 if config["pipeline"].get("run_plasmid", False):
-    final_targets += expand("downstream/plasmid/{sample}/blast_plasmid_hits.tsv", sample=DS_SAMPLES)
+    final_targets += expand("results/downstream/plasmid/{sample}/blast_plasmid_hits.tsv", sample=DS_SAMPLES)
 
 # Include rules
 include: "rules/qc.smk"

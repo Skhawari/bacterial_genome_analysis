@@ -24,7 +24,7 @@ rule prokka_visualization:
 rule enhanced_data_visualization:
     input:
         # Assembly quality reports
-        quast_reports = expand("results/assembly_qc/{sample}/report.tsv", sample=ASSEMBLY_SAMPLES),
+        quast_reports = expand("results/assembly_qc/{sample}/report.txt", sample=ASSEMBLY_SAMPLES),
         # BUSCO completeness reports
         busco_reports = expand("results/busco/{sample}/short_summary.specific.bacteria_odb10.{sample}.txt", sample=ASSEMBLY_SAMPLES),
         # GFF files for gene counts (this ensures Prokka has completed)

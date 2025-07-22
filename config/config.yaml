@@ -120,8 +120,9 @@ virulence:
 plasmid:
   extra: ""      # Options: "" (default), "--plasmidfinder" (for PlasmidFinder database)
 
+# download the plasmid database: wget "https://ccb-microbe.cs.uni-saarland.de/plsdb2025/download_fasta" -O plsdb.fna
 plasmid_db:
-  fasta: "data/plasmidfinder/plasmidfinder_db.fasta"  # Path to PlasmidFinder database FASTA file
+  fasta: "data/plsdb/plsdb.fna"  # Path to PlasmidFinder database FASTA file
   mash_threshold: 0.05  # Mash distance threshold for plasmid detection (default: 0.05)
   blast_evalue: 1e-05  # E-value threshold for BLAST searches against plasmid database (default: 1e-05)
   blast_pid: 90  # Percentage identity threshold for plasmid detection (default: 90)

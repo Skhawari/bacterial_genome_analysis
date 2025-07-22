@@ -1,6 +1,6 @@
 sample	long_read
-sample1	../data/SET1/sample1_MinION_sequencing.fastq.gz
-sample2	../data/SET1/sample2_MinION_sequencing.fastq.gz
-sample3	../data/SET1/sample3_MinION_sequencing.fastq.gz
-sample4	../data/SET1/sample4_MinION_sequencing.fastq.gz
-sample5	../data/SET1/sample5_MinION_sequencing.fastq.gz
+sample1	data/SET1/sample1_MinION_sequencing.fastq.gz
+sample2	data/SET1/sample2_MinION_sequencing.fastq.gz
+sample3	data/SET1/sample3_MinION_sequencing.fastq.gz
+sample4	data/SET1/sample4_MinION_sequencing.fastq.gz
+sample5	data/SET1/sample5_MinION_sequencing.fastq.gz
