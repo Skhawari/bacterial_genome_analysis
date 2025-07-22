@@ -3,6 +3,13 @@ long_read_samples: "config/samples_long_read.tsv"
 long_read_blacklist: "config/blacklist.txt"
 complete_blacklist: "config/complete_blacklist.txt"
 
+# Reporting configuration
+reporting:
+  title: "Genome Analysis Report"
+
+multiqc:
+  title: "Genome Analysis MultiQC Report"
+
 # Quality control parameters
 fastqc:
   extra: "--noextract --nogroup"
@@ -18,12 +25,35 @@ filtlong:
 # Assembly parameters
 assembly:
   mode: "hybrid"  # Options: "hybrid", "short"
+  # "hybrid" (recommended): Uses both short and long reads if available
+  # "short": Forces short-read only assembly (ignores long reads)
   
   # SPAdes-specific options
   spades:
     extra: "--isolate --cov-cutoff auto"  # SPAdes command line options
   
-  #
+  
+# Assembly QA:
+quast:
+  extra: "--no-icarus --no-html --no-plots --gene-finding --glimmer --min-contig 200"
+  # Options: "" (default), "--no-icarus", "--no-html", "--no-plots", "--gene-finding", "--glimmer", "--min-contig 200"
+  # --no-icarus: Disable Icarus plots (faster)
+  # --no-html: Disable HTML report (faster)
+  # --no-plots: Disable graphical plots (faster)
+  # --gene-finding: Enable gene finding (requires Prokka)
+  # --glimmer: Use Glimmer for gene prediction (faster than Prokka)
+  # --min-contig 200: Minimum contig length to report (default: 200 bp)
+  # --min-contig can be adjusted based on your needs (default is 200 bp)
+
+busco:
+  mode: "lineage"  # Options: "lineage", "single-copy", "complete", "fragmented", "missing"
+  lineage: "bacteria_odb10"  # Options: "bacteria_odb10", "fungi_odb10", etc.
+  extra: "--force --offline"  # Additional BUSCO options
+  # --force: Force re-run even if previous results exist
+  # --offline: Run BUSCO in offline mode (no internet access)
+  # --lineage can be set to different databases based on the organism
+
+
   # SPAdes Extra Options:
   #
   # You can specify any SPAdes command line options in the 'extra' field.
@@ -73,7 +103,6 @@ assembly:
 
 # downstream analysis parameters
 pipeline:
-  run_downstream: true # Options: true, false
   run_mlst:      true # Options: true, false
   run_amr:       true # Options: true, false
   run_virulence: true # Options: true, false
@@ -91,6 +120,12 @@ virulence:
 plasmid:
   extra: ""      # Options: "" (default), "--plasmidfinder" (for PlasmidFinder database)
 
+plasmid_db:
+  fasta: "data/plasmidfinder/plasmidfinder_db.fasta"  # Path to PlasmidFinder database FASTA file
+  mash_threshold: 0.05  # Mash distance threshold for plasmid detection (default: 0.05)
+  blast_evalue: 1e-05  # E-value threshold for BLAST searches against plasmid database (default: 1e-05)
+  blast_pid: 90  # Percentage identity threshold for plasmid detection (default: 90)
+
 
 # Annotation parameters
 annotation:
@@ -100,6 +135,7 @@ annotation:
   centre: "Assembly_Pipeline"  # Sequencing centre name for GenBank files
   mincontiglen: 200        # Minimum contig length to annotate (bp)
   evalue: 1e-06           # E-value threshold for similarity searches
+  extra: ""               # Additional Prokka command line options
   
   # Optional advanced parameters (leave empty "" to disable):
   proteins: ""            # Path to custom protein FASTA database

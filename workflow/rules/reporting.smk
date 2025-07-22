@@ -1,33 +1,18 @@
-# rules/reporting.smk
-
-configfile: "config/config.yaml"
-import pandas as pd
-
-# Samples ohne Blacklist
-ALL_SAMPLES   = pd.read_csv(config["samples"], sep="\t").sample_id.tolist()
-DROP_ALL      = set(open(config["complete_blacklist"]).read().splitlines())
-ANNOT_SAMPLES = [s for s in ALL_SAMPLES if s not in DROP_ALL]
-
 rule aggregate_final_report:
-    """
-    Erstellt einen Master-Report, der:
-      - QC MultiQC
-      - Assembly-QA MultiQC
-      - Comparative Genomics HTML
-      - Phylogenie HTML
-      - Downstream Excel (tabellarisch eingebettet)
-    zusammenfasst.
-    """
-    conda: "envs/reporting.yaml"
     input:
-        qc_report        = "qc/multiqc/qc.html",
-        assembly_qa      = "qc/multiqc/assembly_qa.html",
-        comp_report      = "comparative/comparative_genomics_report.html",
-        phylo_report     = "phylogeny/phylogeny_report.html",
-        downstream_sum   = "downstream/summary.xlsx"
+        qc_report        = "results/multiqc/multiqc_report.html",
+        assembly_qa      = "results/assembly_multiqc/assembly_multiqc_report.html",
+        comp_report      = "results/comparative/comparative_genomics_report.html",
+        phylo_report     = "results/phylogeny/phylogeny_report.html",
+        downstream_sum   = "results/downstream/summary.xlsx" if config["pipeline"].get("run_downstream", False) else "config/config.yaml"
     output:
         html = "reports/final_report.html"
     params:
-        title = config.get("reporting", {}).get("title", "Pipeline Summary Report")
+        title = config.get("reporting", {}).get("title", "Bacterial Genome Analysis Pipeline Report"),
+        downstream_enabled = config["pipeline"].get("run_downstream", False)
+    log:
+        "logs/final_report.log"
+    conda:
+        "../envs/reporting.yaml"
     script:
-        "scripts/render_report.py"
+        "../scripts/render_report.py"

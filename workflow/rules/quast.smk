@@ -3,9 +3,29 @@
 # Assembly quality control rules using QUAST and BUSCO
 # Provides comprehensive assembly metrics and completeness assessment
 
+rule busco_download:
+    output:
+        touch("busco_downloads/.bacteria_odb10_ready")
+    conda:
+        "../envs/quast.yaml"
+    threads: 1
+    shell:
+        """
+        mkdir -p busco_downloads
+
+        echo "BUSCO: Downloading lineage dataset 'bacteria_odb10'..." > busco_downloads/bacteria_odb10_download.log
+
+        busco --download bacteria_odb10 \
+              --download_path busco_downloads/ \
+              >> busco_downloads/bacteria_odb10_download.log 2>&1
+
+        touch {output}
+        """
+
 rule busco_completeness:
     input:
-        contigs = "results/assembly/{sample}/contigs.fasta"
+        contigs = "results/assembly/{sample}/contigs.fasta",
+        db_ready = "busco_downloads/.bacteria_odb10_ready"
     output:
         summary = "results/busco/{sample}/short_summary.specific.bacteria_odb10.{sample}.txt",
         full_table = "results/busco/{sample}/run_bacteria_odb10/full_table.tsv"
@@ -25,6 +45,7 @@ rule busco_completeness:
               --download_path busco_downloads/ \
               --mode genome \
               --cpu {threads} \
+              --offline \
               --force \
               > {log} 2>&1
         """

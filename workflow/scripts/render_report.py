@@ -1,33 +1,42 @@
 import pandas as pd
 import jinja2
-import sys
+from pathlib import Path
 
-# Config laden
-# (optional, falls du den title aus config übernehmen möchtest)
+# Eingabedateien aus snakemake
+qc_html         = snakemake.input.qc_report
+assembly_html   = snakemake.input.assembly_qa
+comp_html       = snakemake.input.comp_report
+phylo_html      = snakemake.input.phylo_report
+downstream_xlsx = snakemake.input.downstream_sum
+title           = snakemake.params.title
+enable_downstream = snakemake.params.downstream_enabled
 
-# Eingaben
-qc_html        = snakemake.input.qc_report
-assembly_html  = snakemake.input.assembly_qa
-comp_html      = snakemake.input.comp_report
-phylo_html     = snakemake.input.phylo_report
-downstream_xlsx= snakemake.input.downstream_sum
+# Versuche Downstream-Daten zu laden
+ds_dict = {}
+if enable_downstream and downstream_xlsx.endswith(".xlsx") and Path(downstream_xlsx).exists():
+    try:
+        ds_dict = pd.read_excel(downstream_xlsx, sheet_name=None)
+    except Exception as e:
+        print(f"⚠️ Warning: Could not read Excel {downstream_xlsx}: {e}")
+        ds_dict = {}
 
-# Excel in DataFrame laden
-df_ds = pd.read_excel(downstream_xlsx, sheet_name=None)  # dict von DataFrames
-
-# Template laden
+# Jinja2-Template vorbereiten
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 tmpl = env.get_template("final_report.html.j2")
 
-# Rendern
-html = tmpl.render(
-    title=snakemake.params.title,
-    qc_iframe=qc_html,
-    assembly_iframe=assembly_html,
-    comp_iframe=comp_html,
-    phylo_iframe=phylo_html,
-    downstream_tables=df_ds  # dict[str, DataFrame]
+# HTML-Rendering
+html_content = tmpl.render(
+    title=title,
+    qc_iframe=Path(qc_html).name,
+    assembly_iframe=Path(assembly_html).name,
+    comp_iframe=Path(comp_html).name,
+    phylo_iframe=Path(phylo_html).name,
+    downstream_tables={
+        name: df.to_html(classes="table table-striped table-bordered", index=False, escape=True)
+        for name, df in ds_dict.items()
+    }
 )
 
-with open(snakemake.output.html, "w") as fo:
-    fo.write(html)
+# HTML schreiben
+with open(snakemake.output.html, "w") as fh:
+    fh.write(html_content)
