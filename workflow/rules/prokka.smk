@@ -3,9 +3,17 @@
 # Genome annotation rules using Prokka
 # Provides comprehensive prokaryotic genome annotation including GTF/GFF files
 
+def get_annotation_input(wildcards):
+    """Get input file for annotation - either assembly output or outgroup FASTA"""
+    outgroup_name = config["annotation"].get("outgroup_name", "outgroup")
+    if wildcards.sample == outgroup_name:
+        return config["annotation"]["outgroup_fasta"]
+    else:
+        return f"results/assembly/{wildcards.sample}/contigs.fasta"
+
 rule prokka_annotation:
     input:
-        contigs = "results/assembly/{sample}/contigs.fasta"
+        contigs = get_annotation_input
     output:
         gff = "results/annotation/{sample}/{sample}.gff",
         gtf = "results/annotation/{sample}/{sample}.gtf", 

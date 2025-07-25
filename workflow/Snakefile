@@ -8,7 +8,7 @@ configfile: "config/config.yaml"
 samples = pd.read_csv(config["samples"], sep="\t", index_col="sample")
 long_read_samples = pd.read_csv(config["long_read_samples"], sep="\t", index_col="sample")
 
-# Read long-read blacklist if it exists
+# Read long-read blacklist if it exists, excludes the long-read samples from all steps after qc, uses then only short read mode
 long_read_blacklist = []
 if config.get("long_read_blacklist"):
     try:
@@ -17,7 +17,7 @@ if config.get("long_read_blacklist"):
     except FileNotFoundError:
         pass
 
-# Read complete sample blacklist if it exists
+# Read complete sample blacklist if it exists, excludes the sample from all steps after qc
 complete_blacklist = []
 if config.get("complete_blacklist"):
     try:
@@ -34,8 +34,20 @@ LONG_READ_BLACKLISTED = long_read_blacklist
 DS_SAMPLES = ASSEMBLY_SAMPLES  # for downstream
 ANNOT_SAMPLES = ASSEMBLY_SAMPLES  # for annotation-dependent modules
 
+# Add outgroup to annotation and downstream samples if provided
+
+if config["annotation"].get("outgroup_fasta", ""):
+    outgroup_name = config["annotation"].get("outgroup_name", "outgroup")
+    ANNOT_SAMPLES = ASSEMBLY_SAMPLES + [outgroup_name]
+    DS_SAMPLES = ANNOT_SAMPLES
+
 # Helper function to determine assembly mode
 def get_assembly_mode_for_sample(sample):
+    # Skip assembly mode determination for outgroup since it's already assembled
+    outgroup_name = config["annotation"].get("outgroup_name", "outgroup")
+    if sample == outgroup_name:
+        return "skip"  # Special value indicating no assembly needed
+    
     if config["assembly"]["mode"] == "short":
         return "short"
     if sample in LONG_READ_BLACKLISTED:
@@ -49,8 +61,8 @@ final_targets = [
     expand("results/assembly/{sample}/contigs.fasta", sample=ASSEMBLY_SAMPLES),
     expand("results/assembly_qc/{sample}/report.txt", sample=ASSEMBLY_SAMPLES),
     expand("results/busco/{sample}/short_summary.specific.bacteria_odb10.{sample}.txt", sample=ASSEMBLY_SAMPLES),
-    expand("results/annotation/{sample}/{sample}.gff", sample=ASSEMBLY_SAMPLES),
-    expand("results/annotation/{sample}/{sample}.gtf", sample=ASSEMBLY_SAMPLES),
+    expand("results/annotation/{sample}/{sample}.gff", sample=ANNOT_SAMPLES),
+    expand("results/annotation/{sample}/{sample}.gtf", sample=ANNOT_SAMPLES),
     "results/visualization/prokka_annotation_report.html",
     "results/visualization/prokka_annotation_report.pdf",
     "results/enhanced_visualization/comprehensive_analysis_report.pdf",
@@ -79,6 +91,15 @@ if config["pipeline"].get("run_virulence", False):
     final_targets += expand("results/downstream/virulence/{sample}.tsv", sample=DS_SAMPLES)
 if config["pipeline"].get("run_plasmid", False):
     final_targets += expand("results/downstream/plasmid/{sample}/blast_plasmid_hits.tsv", sample=DS_SAMPLES)
+
+# Add downstream summary if any downstream analysis is enabled
+if any([
+    config["pipeline"].get("run_mlst", False),
+    config["pipeline"].get("run_amr", False),
+    config["pipeline"].get("run_virulence", False),
+    config["pipeline"].get("run_plasmid", False),
+]):
+    final_targets += ["results/downstream/summary.xlsx"]
 
 # Include rules
 include: "rules/qc.smk"

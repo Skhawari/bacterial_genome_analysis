@@ -27,10 +27,10 @@ tmpl = env.get_template("final_report.html.j2")
 # HTML-Rendering
 html_content = tmpl.render(
     title=title,
-    qc_iframe=Path(qc_html).name,
-    assembly_iframe=Path(assembly_html).name,
-    comp_iframe=Path(comp_html).name,
-    phylo_iframe=Path(phylo_html).name,
+    qc_iframe="multiqc_report.html",
+    assembly_iframe="assembly_multiqc_report.html",
+    comp_iframe="comparative_genomics_report.html",
+    phylo_iframe="phylogeny_report.html",
     downstream_tables={
         name: df.to_html(classes="table table-striped table-bordered", index=False, escape=True)
         for name, df in ds_dict.items()

@@ -5,8 +5,7 @@
 
 rule roary_pangenome:
     input:
-        gff_files = expand("results/annotation/{sample}/{sample}.gff", sample=ASSEMBLY_SAMPLES),
-        outgroup_gff = lambda wildcards: config["comparative"]["outgroup_gff"] if config["comparative"].get("outgroup_gff") else []
+        gff_files = expand("results/annotation/{sample}/{sample}.gff", sample=ANNOT_SAMPLES)
     output:
         # Core genome outputs
         core_alignment = "results/comparative/core_gene_alignment.aln",
@@ -38,19 +37,11 @@ rule roary_pangenome:
         # Create temporary directory for input files
         mkdir -p temp_gff_roary
         
-        # Copy sample GFF files with proper naming
+        # Copy sample GFF files with proper naming (includes outgroup if provided)
         for gff in {input.gff_files}; do
             sample=$(basename $gff .gff)
             cp $gff temp_gff_roary/$sample.gff
         done
-        
-        # Copy outgroup if provided (check if outgroup_gff is not empty)
-        if [ -n "{input.outgroup_gff}" ] && [ "{input.outgroup_gff}" != "[]" ]; then
-            echo "Including outgroup: {input.outgroup_gff} as {params.outgroup_name}" | tee -a {log}
-            cp {input.outgroup_gff} temp_gff_roary/{params.outgroup_name}.gff
-        else
-            echo "No outgroup provided - running analysis on samples only" | tee -a {log}
-        fi
         
         # Count input files
         n_files=$(ls temp_gff_roary/*.gff | wc -l)

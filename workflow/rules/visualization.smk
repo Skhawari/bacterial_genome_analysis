@@ -5,9 +5,9 @@
 
 rule prokka_visualization:
     input:
-        gff_files = expand("results/annotation/{sample}/{sample}.gff", sample=ASSEMBLY_SAMPLES),
-        txt_files = expand("results/annotation/{sample}/{sample}.txt", sample=ASSEMBLY_SAMPLES),
-        tsv_files = expand("results/annotation/{sample}/{sample}.tsv", sample=ASSEMBLY_SAMPLES)
+        gff_files = expand("results/annotation/{sample}/{sample}.gff", sample=ANNOT_SAMPLES),
+        txt_files = expand("results/annotation/{sample}/{sample}.txt", sample=ANNOT_SAMPLES),
+        tsv_files = expand("results/annotation/{sample}/{sample}.tsv", sample=ANNOT_SAMPLES)
     output:
         html_report = "results/visualization/prokka_annotation_report.html",
         pdf_report = "results/visualization/prokka_annotation_report.pdf",
@@ -28,7 +28,7 @@ rule enhanced_data_visualization:
         # BUSCO completeness reports
         busco_reports = expand("results/busco/{sample}/short_summary.specific.bacteria_odb10.{sample}.txt", sample=ASSEMBLY_SAMPLES),
         # GFF files for gene counts (this ensures Prokka has completed)
-        gff_files = expand("results/annotation/{sample}/{sample}.gff", sample=ASSEMBLY_SAMPLES),
+        gff_files = expand("results/annotation/{sample}/{sample}.gff", sample=ANNOT_SAMPLES),
         # Assembly summary for additional plots
         assembly_summary = "results/assembly/assembly_summary.txt",
         # Configuration file

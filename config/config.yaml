@@ -3,6 +3,12 @@ long_read_samples: "config/samples_long_read.tsv"
 long_read_blacklist: "config/blacklist.txt"
 complete_blacklist: "config/complete_blacklist.txt"
 
+  # BLACKLIST SYSTEM:
+  # 1. long_read_blacklist: Excludes samples from using long reads (falls back to short-read assembly)
+  # 2. complete_blacklist: Excludes samples from ALL analysis after QC (no assembly, no downstream analysis)
+  #
+  # The blacklists allow you to exclude specific samples while keeping others in the workflow.
+
 # Reporting configuration
 reporting:
   title: "Genome Analysis Report"
@@ -32,7 +38,19 @@ assembly:
   spades:
     extra: "--isolate --cov-cutoff auto"  # SPAdes command line options
   
+  # SPAdes Extra Options:
+  # You can specify any SPAdes command line options in the 'extra' field.
+  # Common options:
+  #   --isolate: Optimized for bacterial isolate genomes (recommended)
+  #   --careful: Reduces mismatches and short indels (NOT compatible with --isolate)
+  #   --cov-cutoff auto: Automatic coverage filtering (recommended)
+  #   --cov-cutoff off: No coverage filtering
+  #   --cov-cutoff 5.0: Manual coverage cutoff
+  #   --only-assembler: Skip error correction (faster, lower quality)
+  #   -k 21,33,55,77: Custom k-mer sizes
+  # NOTE: --careful and --isolate cannot be used together!
   
+
 # Assembly QA:
 quast:
   extra: "--no-icarus --no-html --no-plots --gene-finding --glimmer --min-contig 200"
@@ -54,53 +72,6 @@ busco:
   # --lineage can be set to different databases based on the organism
 
 
-  # SPAdes Extra Options:
-  #
-  # You can specify any SPAdes command line options in the 'extra' field.
-  # 
-  # Common options:
-  #   --isolate: Optimized for bacterial isolate genomes (recommended)
-  #   --careful: Reduces mismatches and short indels (NOT compatible with --isolate)
-  #   --cov-cutoff auto: Automatic coverage filtering (recommended)
-  #   --cov-cutoff off: No coverage filtering
-  #   --cov-cutoff 5.0: Manual coverage cutoff
-  #   --only-assembler: Skip error correction (faster, lower quality)
-  #   -k 21,33,55,77: Custom k-mer sizes
-  #
-  # NOTE: --careful and --isolate cannot be used together!
-  #
-  # Examples:
-  #   Isolate mode (recommended): "--isolate --cov-cutoff auto"
-  #   Standard mode with careful: "--careful --cov-cutoff auto"
-  #   Fast assembly: "--isolate --cov-cutoff 5.0"
-  #   Custom k-mers: "--isolate -k 21,33,55,77,99"
-  #
-  # Assembly mode logic:
-  # 
-  # "hybrid" mode (recommended):
-  #   - Uses hybrid assembly (short + long reads) when:
-  #     * Sample has long reads available AND
-  #     * Sample is NOT in the long_read_blacklist file
-  #   - Automatically falls back to short-read only when:
-  #     * Sample is in long_read_blacklist (low coverage long reads) OR
-  #     * Sample has no long reads available
-  #
-  # "short" mode:
-  #   - Forces ALL samples to use short-read only assembly
-  #   - Ignores long reads completely, even if available
-  #
-  # Example scenarios with mode="hybrid":
-  #   - sample1: in long_read_blacklist → short-read only (due to low coverage)
-  #   - sample2-5: not blacklisted + has long reads → hybrid assembly  
-  #   - sample6: not blacklisted but no long reads → short-read only
-  #
-  # BLACKLIST SYSTEM:
-  # 1. long_read_blacklist: Excludes samples from using long reads (falls back to short-read assembly)
-  # 2. complete_blacklist: Excludes samples from ALL analysis after QC (no assembly, no downstream analysis)
-  #
-  # The blacklists allow you to exclude specific samples while keeping others in the workflow.
-
-
 # downstream analysis parameters
 pipeline:
   run_mlst:      true # Options: true, false
@@ -109,10 +80,10 @@ pipeline:
   run_plasmid:   true # Options: true, false
 
 mlst:
-  scheme: "klebsiella" # Options: "ecoli", "klebsiella", "salmonella", "staphylococcus", "streptococcus", "auto"
+  scheme: "kpneumoniae" # Options: "ecoli", "kpneumoniae", "salmonella", "staphylococcus", "streptococcus", "auto"
 
 amr:
-  extra: ""       # Options: "" (default), "--card" (for CARD database), "--resfinder" (for ResFinder database)
+  extra: ""      # Options: "" (default), "--card" (for CARD database), "--resfinder" (for ResFinder database)
 
 virulence:
   extra: ""      # Options: "" (default), "--virulencefinder" (for VirulenceFinder database)
@@ -123,9 +94,9 @@ plasmid:
 # download the plasmid database: wget "https://ccb-microbe.cs.uni-saarland.de/plsdb2025/download_fasta" -O plsdb.fna
 plasmid_db:
   fasta: "data/plsdb/plsdb.fna"  # Path to PlasmidFinder database FASTA file
-  mash_threshold: 0.05  # Mash distance threshold for plasmid detection (default: 0.05)
-  blast_evalue: 1e-05  # E-value threshold for BLAST searches against plasmid database (default: 1e-05)
-  blast_pid: 90  # Percentage identity threshold for plasmid detection (default: 90)
+  mash_threshold: 0.1  # Mash distance threshold for plasmid detection (0.80 = 20% identity minimum)
+  blast_evalue: 1e-10  # E-value threshold for BLAST searches against plasmid database (stringent: 1e-10)
+  blast_pid: 85  # Percentage identity threshold for plasmid detection (stringent: 85)
 
 
 # Annotation parameters
@@ -137,7 +108,15 @@ annotation:
   mincontiglen: 200        # Minimum contig length to annotate (bp)
   evalue: 1e-06           # E-value threshold for similarity searches
   extra: ""               # Additional Prokka command line options
+  outgroup_fasta: "resources/data/outgroup/outgroup.fasta" # Path to outgroup FASTA (leave empty if not used)
+  outgroup_name: "outgroup" # Name for outgroup sample (used in annotation and downstream)
   
+  # Examples:
+  # outgroup_gff: "resources/data/outgroup/outgroup.fasta"
+  # outgroup_name: "reference_ATCC"
+  
+  # Note: The outgroup should be an unannotated genome in fasta format
+
   # Optional advanced parameters (leave empty "" to disable):
   proteins: ""            # Path to custom protein FASTA database
   hmms: ""               # Path to custom HMM database
@@ -157,12 +136,6 @@ comparative:
   # Roary extra command line options
   extra: "-e -n -v"        # Additional Roary command line options
   
-  # Optional outgroup genome for phylogenetic analysis
-  # Provide the path to an assembled genome (GFF file) to use as outgroup
-  # This genome will be included in the pan-genome analysis and phylogeny
-  outgroup_gff: ""         # Path to outgroup GFF file (leave empty if no outgroup)
-  outgroup_name: "outgroup" # Name for the outgroup sample (used in output files)
-  
   #
   # Roary Extra Options:
   #
@@ -177,35 +150,18 @@ comparative:
   #   -z: Don't delete intermediate files (for debugging)
   #   -r: Create R plots (requires R with ggplot2)
   #   -iv <file>: Path to file with names of isolates to use for core genome
-  #
-  # Examples:
-  #   Standard: "-e -n -v" (recommended - creates core alignment with verbose output)
-  #   Fast: "-n -v" (MAFFT alignment, faster)
-  #   Debug: "-e -n -v -z" (keep intermediate files)
-  #   With R plots: "-e -n -v -r" (if R/ggplot2 available)
-  #
   
-  # Examples:
-  # outgroup_gff: "data/reference_genomes/reference_strain.gff"
-  # outgroup_name: "reference_ATCC"
-  
-  # Note: The outgroup should be an annotated genome in GFF format
-  # produced by Prokka or compatible annotation tool
+
 
 # Phylogenetic analysis parameters
 phylogeny:
   # Model selection method for IQ-TREE
   model_selection: "MFP"     # Model finder plus (automatic model selection)
-  
-  # Bootstrap support assessment
   bootstrap_replicates: 1000  # Number of ultrafast bootstrap replicates
-  
   # Optional outgroup for rooting the tree
-  outgroup: ""               # Sample name to use as outgroup (leave empty for unrooted tree)
-  
+  outgroup: "outgroup"               # Sample name to use as outgroup (leave empty for unrooted tree)
   # Additional IQ-TREE command line options
   extra: ""                  # Additional IQ-TREE parameters
-  
   #
   # IQ-TREE Model Selection Options:
   #
@@ -216,19 +172,3 @@ phylogeny:
   #   "JC": Jukes-Cantor (simplest)
   #   "TEST": Test all available models and pick best
   #
-  # bootstrap_replicates:
-  #   1000: Standard number for publication (recommended)
-  #   100: Faster for testing
-  #   0: No bootstrap (much faster, no support values)
-  #
-  # Extra options examples:
-  #   "-alrt 1000": SH-aLRT test in addition to bootstrap
-  #   "-wbtl": Write bootstrap trees to file
-  #   "-seed 12345": Set random seed for reproducibility
-  #   "-fast": Fast mode (less thorough search)
-  #
-  # Examples:
-  #   outgroup: "sample_reference"  # Use sample_reference as outgroup
-  #   extra: "-alrt 1000 -seed 12345"  # Add SH-aLRT test with fixed seed
-  #
-
