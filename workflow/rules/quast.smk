@@ -11,8 +11,6 @@ rule busco_download:
     threads: 1
     shell:
         """
-        mkdir -p busco_downloads
-
         echo "BUSCO: Downloading lineage dataset 'bacteria_odb10'..." > busco_downloads/bacteria_odb10_download.log
 
         busco --download bacteria_odb10 \
@@ -83,7 +81,7 @@ rule multiqc_assembly:
         "../envs/qc.yaml"
     shell:
         """
-        multiqc results/assembly_qc/ results/busco/ \
+        multiqc --dirs {input.quast_reports} {input.busco_summaries} \
                 -o results/assembly_multiqc/ \
                 -n assembly_multiqc_report \
                 --title "Assembly Quality Assessment Report" \

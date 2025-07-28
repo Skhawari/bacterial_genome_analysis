@@ -698,10 +698,13 @@ def main():
         # Get sample list from config
         import yaml
         try:
-            with open('config/config.yaml', 'r') as f:
+            # Use the config file passed as input to the Snakemake rule
+            config_file = snakemake.input.config_file
+            print(f"Using config file: {config_file}")
+            with open(config_file, 'r') as f:
                 config = yaml.safe_load(f)
-        except FileNotFoundError:
-            print("ERROR: config/config.yaml not found")
+        except (FileNotFoundError, AttributeError) as e:
+            print(f"ERROR: Could not load config file: {e}")
             exit(1)
         
         if 'samples' not in config:

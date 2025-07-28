@@ -19,8 +19,7 @@ rule aggregate_final_report:
     conda:
         "../envs/reporting.yaml"
     run:
-        # Copy HTML files to reports directory
-        shell("mkdir -p reports")
+        # Copy HTML files to reports directory (Snakemake creates the output directory)
         shell("cp {input.qc_report} {output.qc_copy}")
         shell("cp {input.assembly_qa} {output.assembly_copy}")
         shell("cp {input.comp_report} {output.comp_copy}")

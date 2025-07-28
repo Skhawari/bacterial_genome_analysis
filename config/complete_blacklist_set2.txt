@@ -1,0 +1,5 @@
+# Complete blacklist for SET2 E. coli dataset
+# Add sample names here to exclude them from ALL analysis after QC
+# Currently excluding 2014C-3840 because it's being used as outgroup
+
+2014C-3840

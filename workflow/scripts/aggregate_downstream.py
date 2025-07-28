@@ -31,8 +31,8 @@ def main():
         samples = [s for s in all_samples if s not in blacklist]
         
         # Add outgroup if configured
-        if cfg["annotation"].get("outgroup_fasta", ""):
-            outgroup_name = cfg["annotation"].get("outgroup_name", "outgroup")
+        if cfg.get("outgroup_fasta", ""):
+            outgroup_name = cfg.get("outgroup_name", "outgroup")
             if outgroup_name not in samples:
                 samples.append(outgroup_name)
                 

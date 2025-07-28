@@ -80,7 +80,7 @@ pipeline:
   run_plasmid:   true # Options: true, false
 
 mlst:
-  scheme: "kpneumoniae" # Options: "ecoli", "kpneumoniae", "salmonella", "staphylococcus", "streptococcus", "auto"
+  scheme: "klebsiella" # Options: "ecoli", "klebsiella", "salmonella", "staphylococcus", "streptococcus", "auto"
 
 amr:
   extra: ""      # Options: "" (default), "--card" (for CARD database), "--resfinder" (for ResFinder database)

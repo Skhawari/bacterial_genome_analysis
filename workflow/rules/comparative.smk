@@ -34,7 +34,7 @@ rule roary_pangenome:
         "../envs/comparative.yaml"
     shell:
         """
-        # Create temporary directory for input files
+        # Create temporary directory for processing (this is a working directory, not an output directory)
         mkdir -p temp_gff_roary
         
         # Copy sample GFF files with proper naming (includes outgroup if provided)
@@ -64,8 +64,7 @@ rule roary_pangenome:
         if [ -n "$roary_output_dir" ] && [ -d "$roary_output_dir" ]; then
             echo "Found Roary output directory: $roary_output_dir" | tee -a {log}
             
-            # Move all files to the expected directory
-            mkdir -p {params.output_dir}
+            # Move all files to the expected directory (Snakemake creates the output directory)
             mv "$roary_output_dir"/* {params.output_dir}/
             rmdir "$roary_output_dir"
             

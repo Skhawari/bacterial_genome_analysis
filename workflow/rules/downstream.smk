@@ -8,9 +8,9 @@ run_plasmid   = config["pipeline"].get("run_plasmid", False)
 
 def get_contigs_for_downstream(wildcards):
     """Get contigs file for downstream analysis - either assembly output or outgroup FASTA"""
-    outgroup_name = config["annotation"].get("outgroup_name", "outgroup")
+    outgroup_name = config.get("outgroup_name", "outgroup")
     if wildcards.sample == outgroup_name:
-        return config["annotation"]["outgroup_fasta"]
+        return config["outgroup_fasta"]
     else:
         return f"results/assembly/{wildcards.sample}/contigs.fasta"
 
@@ -79,9 +79,11 @@ rule mash_sketch_plasmid_db:
         fasta = config["plasmid_db"]["fasta"]
     output:
         "databases/plsdb/plasmids.msh"
+    log:
+        "logs/plasmid/mash_sketch_db.log"
     threads: 1
     shell:
-        "mkdir -p databases/plsdb && mash sketch -o databases/plsdb/plasmids {input.fasta}"
+        "mash sketch -o databases/plsdb/plasmids {input.fasta} > {log} 2>&1"
 
 # PLSDB BLAST DB
 rule makeblastdb_plasmid:
@@ -93,8 +95,10 @@ rule makeblastdb_plasmid:
         nsq= "databases/plsdb/plasmids.nsq",
         nin= "databases/plsdb/plasmids.nin",
         nhr= "databases/plsdb/plasmids.nhr"
+    log:
+        "logs/plasmid/makeblastdb.log"
     shell:
-        "mkdir -p databases/plsdb && makeblastdb -in {input.fasta} -dbtype nucl -out databases/plsdb/plasmids"
+        "makeblastdb -in {input.fasta} -dbtype nucl -out databases/plsdb/plasmids > {log} 2>&1"
 
 # Plasmid Mash Screen
 rule mash_screen_plasmids:

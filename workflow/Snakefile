@@ -4,7 +4,7 @@ min_version("7.0")
 
 wrapper_prefix = "https://github.com/snakemake/snakemake-wrappers/raw/master/bio"
 
-configfile: "config/config.yaml"
+configfile: "config/config_set2.yaml"
 samples = pd.read_csv(config["samples"], sep="\t", index_col="sample")
 long_read_samples = pd.read_csv(config["long_read_samples"], sep="\t", index_col="sample")
 
@@ -36,15 +36,15 @@ ANNOT_SAMPLES = ASSEMBLY_SAMPLES  # for annotation-dependent modules
 
 # Add outgroup to annotation and downstream samples if provided
 
-if config["annotation"].get("outgroup_fasta", ""):
-    outgroup_name = config["annotation"].get("outgroup_name", "outgroup")
+if config.get("outgroup_fasta", ""):
+    outgroup_name = config.get("outgroup_name", "outgroup")
     ANNOT_SAMPLES = ASSEMBLY_SAMPLES + [outgroup_name]
     DS_SAMPLES = ANNOT_SAMPLES
 
 # Helper function to determine assembly mode
 def get_assembly_mode_for_sample(sample):
     # Skip assembly mode determination for outgroup since it's already assembled
-    outgroup_name = config["annotation"].get("outgroup_name", "outgroup")
+    outgroup_name = config.get("outgroup_name", "outgroup")
     if sample == outgroup_name:
         return "skip"  # Special value indicating no assembly needed
     

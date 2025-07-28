@@ -31,8 +31,8 @@ rule enhanced_data_visualization:
         gff_files = expand("results/annotation/{sample}/{sample}.gff", sample=ANNOT_SAMPLES),
         # Assembly summary for additional plots
         assembly_summary = "results/assembly/assembly_summary.txt",
-        # Configuration file
-        config_file = "config/config.yaml"
+        # Configuration file - dynamically use whatever config file is loaded in Snakefile
+        config_file = workflow.configfiles[0]
     output:
         # Comprehensive report combining all statistical analysis
         comprehensive_report = "results/enhanced_visualization/comprehensive_analysis_report.pdf"

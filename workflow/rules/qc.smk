@@ -3,55 +3,44 @@
 # Short-read QC rules
 rule fastqc_raw:
     input:
-        fq = lambda wc: samples.at[wc.sample, f"fq{wc.idx}"]
+        lambda wc: samples.at[wc.sample, f"fq{wc.idx}"]
     output:
-        html = "results/fastqc_raw/{sample}_Illumina_MiSeq_paired_end_sequencing_{idx}_fastqc.html",
-        zip = "results/fastqc_raw/{sample}_Illumina_MiSeq_paired_end_sequencing_{idx}_fastqc.zip"
+        html = "results/fastqc_raw/{sample}_{idx}_fastqc.html",
+        zip = "results/fastqc_raw/{sample}_{idx}_fastqc.zip"
     log:
         "logs/fastqc_raw/{sample}_{idx}.log"
     threads: 4
-    conda:
-        "../envs/qc.yaml"
-    shell:
-        """
-        fastqc --threads {threads} {config[fastqc][extra]} --outdir results/fastqc_raw {input.fq} > {log} 2>&1
-        """
+    resources:
+        mem_mb = 1000
+    wrapper:
+        "v6.2.0/bio/fastqc"
 
 rule fastp:
     input:
-        fq1 = lambda wc: samples.at[wc.sample, "fq1"],
-        fq2 = lambda wc: samples.at[wc.sample, "fq2"]
+        sample = lambda wc: [samples.at[wc.sample, "fq1"], samples.at[wc.sample, "fq2"]]
     output:
-        fq1 = "results/trimmed/{sample}_R1.fastq.gz",
-        fq2 = "results/trimmed/{sample}_R2.fastq.gz",
+        trimmed = ["results/trimmed/{sample}_R1.fastq.gz", "results/trimmed/{sample}_R2.fastq.gz"],
         html = "results/qc/fastp/{sample}.html",
         json = "results/qc/fastp/{sample}.json"
     log:
         "logs/fastp/{sample}.log"
     threads: 8
-    conda:
-        "../envs/qc.yaml"
-    shell:
-        """
-        fastp -i {input.fq1} -I {input.fq2} -o {output.fq1} -O {output.fq2} \
-              --html {output.html} --json {output.json} -w {threads} {config[fastp][extra]} > {log} 2>&1
-        """
+    wrapper:
+        "v6.2.0/bio/fastp"
 
 rule fastqc_trimmed:
     input:
-        fq = "results/trimmed/{sample}_R{idx}.fastq.gz"
+        "results/trimmed/{sample}_R{idx}.fastq.gz"
     output:
         html = "results/fastqc_trimmed/{sample}_R{idx}_fastqc.html",
         zip = "results/fastqc_trimmed/{sample}_R{idx}_fastqc.zip"
     log:
         "logs/fastqc_trimmed/{sample}_{idx}.log"
     threads: 4
-    conda:
-        "../envs/qc.yaml"
-    shell:
-        """
-        fastqc --threads {threads} --outdir results/fastqc_trimmed {input.fq} > {log} 2>&1
-        """
+    resources:
+        mem_mb = 1000
+    wrapper:
+        "v6.2.0/bio/fastqc"
 
 # Long-read QC rules
 rule nanostat_raw:
@@ -106,7 +95,7 @@ rule filtlong_filter:
 rule multiqc:
     input:
         # Short-read QC files (always present for all samples)
-        expand("results/fastqc_raw/{sample}_Illumina_MiSeq_paired_end_sequencing_{idx}_fastqc.zip", sample=ALL_SAMPLES, idx=["1", "2"]),
+        expand("results/fastqc_raw/{sample}_{idx}_fastqc.zip", sample=ALL_SAMPLES, idx=["1", "2"]),
         expand("results/fastqc_trimmed/{sample}_R{idx}_fastqc.zip", sample=ALL_SAMPLES, idx=["1", "2"]),
         expand("results/qc/fastp/{sample}.json", sample=ALL_SAMPLES),
         # Long-read QC files (only for samples with long reads available)
@@ -121,7 +110,5 @@ rule multiqc:
         "../envs/qc.yaml"
     shell:
         """
-        multiqc results/fastqc_raw results/fastqc_trimmed results/qc/fastp \
-                results/nanostat_raw results/nanostat_filtered \
-                -o results/multiqc --force > {log} 2>&1
+        multiqc --dirs {input} -o results/multiqc --force > {log} 2>&1
         """

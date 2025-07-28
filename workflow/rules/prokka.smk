@@ -5,9 +5,9 @@
 
 def get_annotation_input(wildcards):
     """Get input file for annotation - either assembly output or outgroup FASTA"""
-    outgroup_name = config["annotation"].get("outgroup_name", "outgroup")
+    outgroup_name = config.get("outgroup_name", "outgroup")
     if wildcards.sample == outgroup_name:
-        return config["annotation"]["outgroup_fasta"]
+        return config["outgroup_fasta"]
     else:
         return f"results/assembly/{wildcards.sample}/contigs.fasta"
 

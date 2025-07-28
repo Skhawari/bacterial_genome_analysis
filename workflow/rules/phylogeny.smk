@@ -24,7 +24,7 @@ rule iqtree_phylogeny:
         model_selection = config["phylogeny"].get("model_selection", "MFP"),
         bootstrap_replicates = config["phylogeny"].get("bootstrap_replicates", 1000),
         extra = config["phylogeny"].get("extra", ""),
-        outgroup = config["phylogeny"].get("outgroup", ""),
+        outgroup = config.get("outgroup_name", ""),
         threads_iqtree = lambda wildcards, threads: min(threads, 16)  # IQ-TREE works best with ≤16 threads
     log:
         "logs/iqtree_phylogeny.log"
@@ -33,9 +33,6 @@ rule iqtree_phylogeny:
         "../envs/phylogeny.yaml"
     shell:
         """
-        # Create output directory
-        mkdir -p results/phylogeny
-        
         # Copy alignment to working directory with correct name
         cp {input.alignment} {params.prefix}.phy
         
