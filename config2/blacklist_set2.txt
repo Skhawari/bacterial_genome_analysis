@@ -1,0 +1,3 @@
+# Long-read blacklist for SET2 E. coli dataset
+# Add sample names here to exclude them from long-read assembly (forcing short-read only)
+# Since SET2 has no long reads, this file can remain empty

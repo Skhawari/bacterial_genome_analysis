@@ -1,0 +1,98 @@
+samples: "config/samples_set2.tsv"
+long_read_samples: "config/samples_long_read_set2.tsv"
+long_read_blacklist: "config/blacklist_set2.txt"
+complete_blacklist: "config/complete_blacklist_set2.txt"
+outgroup_fasta: "data/outgroup/outgroup.fasta"
+outgroup_name: "og"
+
+  # BLACKLIST SYSTEM:
+  # 1. long_read_blacklist: Excludes samples from using long reads (falls back to short-read assembly)
+  # 2. complete_blacklist: Excludes samples from ALL analysis after QC (no assembly, no downstream analysis)
+  #
+  # The blacklists allow you to exclude specific samples while keeping others in the workflow.
+
+# Reporting configuration
+reporting:
+  title: "E. coli SET2 Genome Analysis Report"
+
+multiqc:
+  title: "E. coli SET2 MultiQC Report"
+
+# Quality control parameters
+fastqc:
+  extra: "--noextract --nogroup"
+  
+fastp:
+  extra: "--detect_adapter_for_pe --correction --cut_right --cut_right_window_size 4 --cut_right_mean_quality 15 --length_required 36"
+
+filtlong:
+  min_length: 1000
+  keep_percent: 90
+  target_bases: 500000000
+
+# Assembly parameters
+assembly:
+  mode: "short"  # SET2 has no long reads, so use short-read only assembly
+  
+  # SPAdes-specific options
+  spades:
+    extra: "--isolate --cov-cutoff auto"  # SPAdes command line options
+
+# Assembly QA:
+quast:
+  extra: "--no-icarus --no-html --no-plots --gene-finding --glimmer --min-contig 200"
+
+busco:
+  mode: "lineage"
+  lineage: "auto"  # auto-detect for bacteria
+  extra: "--force --offline"
+
+# downstream analysis parameters
+pipeline:
+  run_mlst:      true # Options: true, false
+  run_amr:       true # Options: true, false
+  run_virulence: true # Options: true, false
+  run_plasmid:   true # Options: true, false
+
+mlst:
+  scheme: "ecoli" # Changed to E. coli scheme for this dataset
+
+amr:
+  extra: ""
+
+virulence:
+  extra: ""
+
+plasmid:
+  extra: ""
+
+# Plasmid database configuration
+plasmid_db:
+  fasta: "data/plsdb/plsdb.fna"  # Path to PlasmidFinder database FASTA file
+  mash_threshold: 0.1  # Mash distance threshold for plasmid detection
+  blast_evalue: 1e-10  # E-value threshold for BLAST searches
+  blast_pid: 85  # Percentage identity threshold for plasmid detection
+
+# Annotation parameters
+annotation:
+  genus: "Escherichia"     # Changed for E. coli
+  species: "coli"          # Changed for E. coli
+  kingdom: "Bacteria"
+  centre: "Assembly_Pipeline"
+  mincontiglen: 200
+  evalue: 1e-06
+  extra: ""
+  proteins: ""
+  hmms: ""
+
+# Comparative genomics parameters
+comparative:
+  identity_threshold: 95
+  core_definition: 99
+  extra: "-e -n -v"
+
+# Phylogenetic analysis parameters
+phylogeny:
+  model_selection: "MFP"
+  bootstrap_replicates: 1000
+  extra: ""

@@ -10,12 +10,23 @@ import os
 def main():
     print("🔎 Aggregating downstream analysis results...\n")
 
-    # Load config
-    try:
-        with open("config/config.yaml", 'r') as f:
-            cfg = yaml.safe_load(f)
-    except Exception as e:
-        print(f"Error loading config: {e}")
+    # Load config - try to detect which config file is being used
+    config_files = ["config/config_set2.yaml", "config/config.yaml"]
+    cfg = None
+    
+    for config_file in config_files:
+        try:
+            if Path(config_file).exists():
+                with open(config_file, 'r') as f:
+                    cfg = yaml.safe_load(f)
+                print(f"📄 Using config: {config_file}")
+                break
+        except Exception as e:
+            print(f"⚠️ Could not load {config_file}: {e}")
+            continue
+    
+    if cfg is None:
+        print("❌ No valid config file found")
         return
 
     # Get samples & blacklist
@@ -73,6 +84,7 @@ def main():
                                 'sequence_type': parts[2],
                                 'alleles': '\t'.join(parts[3:]) if len(parts) > 3 else ''
                             })
+                            print(f"   → {sample}: {parts[1]} scheme, ST {parts[2]}")
             except Exception as e:
                 print(f"⚠️ Could not read MLST file {f}: {e}")
                 
@@ -93,13 +105,18 @@ def main():
                     continue
                     
                 if os.path.getsize(f) > 0:  # Check if file is not empty
-                    # Read with header starting with # - skip comment parameter
-                    df = pd.read_csv(f, sep="\t", dtype=str)
-                    # Remove # from column names if present
-                    df.columns = df.columns.str.replace('^#', '', regex=True)
-                    if not df.empty:
-                        df.insert(0, 'sample', sample)
-                        amr_data.append(df)
+                    # AMR files have problematic headers - read without header and add manually
+                    try:
+                        # Skip the header line and read data
+                        df = pd.read_csv(f, sep="\t", dtype=str, skiprows=1, header=None)
+                        if not df.empty:
+                            # Add column names manually based on AMR output format
+                            df.columns = ['FILE', 'SEQUENCE', 'START', 'END', 'STRAND', 'GENE', 'COVERAGE', 'COVERAGE_MAP', 'GAPS', 'PERCENT_COVERAGE', 'PERCENT_IDENTITY', 'DATABASE', 'ACCESSION', 'PRODUCT', 'RESISTANCE']
+                            df.insert(0, 'sample', sample)
+                            amr_data.append(df)
+                            print(f"   → {sample}: {len(df)} AMR hits")
+                    except Exception as parse_error:
+                        print(f"⚠️ Parse error for AMR file {f}: {parse_error}")
             except Exception as e:
                 print(f"⚠️ Could not read AMR file {f}: {e}")
                 
@@ -120,13 +137,18 @@ def main():
                     continue
                     
                 if os.path.getsize(f) > 0:  # Check if file is not empty
-                    # Read with header starting with # - skip comment parameter
-                    df = pd.read_csv(f, sep="\t", dtype=str)
-                    # Remove # from column names if present
-                    df.columns = df.columns.str.replace('^#', '', regex=True)
-                    if not df.empty:
-                        df.insert(0, 'sample', sample)
-                        vir_data.append(df)
+                    # Virulence files have same header format as AMR - read without header
+                    try:
+                        # Skip the header line and read data
+                        df = pd.read_csv(f, sep="\t", dtype=str, skiprows=1, header=None)
+                        if not df.empty:
+                            # Add column names manually based on virulence output format
+                            df.columns = ['FILE', 'SEQUENCE', 'START', 'END', 'STRAND', 'GENE', 'COVERAGE', 'COVERAGE_MAP', 'GAPS', 'PERCENT_COVERAGE', 'PERCENT_IDENTITY', 'DATABASE', 'ACCESSION', 'PRODUCT', 'RESISTANCE']
+                            df.insert(0, 'sample', sample)
+                            vir_data.append(df)
+                            print(f"   → {sample}: {len(df)} virulence factors")
+                    except Exception as parse_error:
+                        print(f"⚠️ Parse error for virulence file {f}: {parse_error}")
             except Exception as e:
                 print(f"⚠️ Could not read virulence file {f}: {e}")
                 
@@ -153,6 +175,7 @@ def main():
                     if not df.empty:
                         df.insert(0, 'sample', sample)
                         plasmid_data.append(df)
+                        print(f"   → {sample}: {len(df)} plasmid hits")
             except Exception as e:
                 print(f"⚠️ Could not read plasmid file {f}: {e}")
                 
@@ -163,37 +186,43 @@ def main():
     # Write Excel file only if we have data
     if all_data:
         try:
-            # Remove any existing corrupted file
+            # Try to write Excel file
             excel_path = "results/downstream/summary.xlsx"
             if os.path.exists(excel_path):
                 os.remove(excel_path)
                 
-            with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
-                for sheet_name, df in all_data.items():
-                    # Ensure valid sheet name (Excel limit 31 chars, no special chars)
-                    safe_name = sheet_name[:31].replace('[', '').replace(']', '').replace('*', '').replace('?', '').replace(':', '').replace('/', '_').replace('\\', '_')
-                    
-                    # Clean data for Excel compatibility - CRITICAL: Handle formula characters
-                    for col in df.columns:
-                        if df[col].dtype == 'object':
-                            # Replace characters that Excel interprets as formulas
-                            df[col] = df[col].astype(str).str.replace('\x00', '', regex=False)  # Remove null bytes
-                            df[col] = df[col].str.replace('^=', "'=", regex=True)  # Escape leading equals
-                            df[col] = df[col].str.replace('^\\+', "'+", regex=True)  # Escape leading plus
-                            df[col] = df[col].str.replace('^-', "'-", regex=True)  # Escape leading minus
-                            df[col] = df[col].str.replace('^@', "'@", regex=True)  # Escape leading at
-                    
-                    df.to_excel(writer, sheet_name=safe_name, index=False)
-                    
-            print(f"\n✅ Aggregation complete → results/downstream/summary.xlsx ({len(all_data)} sheets)")
-            
+            try:
+                with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+                    for sheet_name, df in all_data.items():
+                        # Ensure valid sheet name (Excel limit 31 chars, no special chars)
+                        safe_name = sheet_name[:31].replace('[', '').replace(']', '').replace('*', '').replace('?', '').replace(':', '').replace('/', '_').replace('\\', '_')
+                        
+                        # Clean data for Excel compatibility - CRITICAL: Handle formula characters
+                        for col in df.columns:
+                            if df[col].dtype == 'object':
+                                # Replace characters that Excel interprets as formulas
+                                df[col] = df[col].astype(str).str.replace('\x00', '', regex=False)  # Remove null bytes
+                                df[col] = df[col].str.replace('^=', "'=", regex=True)  # Escape leading equals
+                                df[col] = df[col].str.replace('^\\+', "'+", regex=True)  # Escape leading plus
+                                df[col] = df[col].str.replace('^-', "'-", regex=True)  # Escape leading minus
+                                df[col] = df[col].str.replace('^@', "'@", regex=True)  # Escape leading at
+                        
+                        df.to_excel(writer, sheet_name=safe_name, index=False)
+                        
+                print(f"\n✅ Aggregation complete → results/downstream/summary.xlsx ({len(all_data)} sheets)")
+                
+            except ImportError:
+                print("⚠️ openpyxl not available, writing CSV files instead...")
+                raise Exception("openpyxl not found")
+                
         except Exception as e:
-            print(f"❌ Error writing Excel file: {e}")
+            print(f"⚠️ Excel write failed: {e}")
             # Fallback: write as CSV files
             for sheet_name, df in all_data.items():
                 csv_file = f"results/downstream/{sheet_name.lower()}_summary.csv"
                 df.to_csv(csv_file, index=False)
-                print(f"📄 Wrote fallback CSV: {csv_file}")
+                print(f"📄 Wrote CSV: {csv_file}")
+            print(f"\n✅ Aggregation complete → {len(all_data)} CSV files in results/downstream/")
     else:
         print("⚠️ No data found to aggregate. Creating summary report.")
         # Create a summary of what was attempted
