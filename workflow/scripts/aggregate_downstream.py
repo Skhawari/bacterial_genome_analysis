@@ -11,7 +11,7 @@ def main():
     print("🔎 Aggregating downstream analysis results...\n")
 
     # Load config - try to detect which config file is being used
-    config_files = ["config/config_set2.yaml", "config/config.yaml"]
+    config_files = ["config2/config.yaml", "config/config.yaml"]
     cfg = None
     
     for config_file in config_files:
