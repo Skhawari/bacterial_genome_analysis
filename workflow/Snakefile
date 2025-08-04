@@ -83,21 +83,21 @@ final_targets = [
     "reports/final_report.html"
 ]
 
-if config["pipeline"].get("run_mlst", False):
+if config["downstream"].get("run_mlst", False):
     final_targets += expand("results/downstream/mlst/{sample}.txt", sample=DS_SAMPLES)
-if config["pipeline"].get("run_amr", False):
+if config["downstream"].get("run_amr", False):
     final_targets += expand("results/downstream/amr/{sample}.tsv", sample=DS_SAMPLES)
-if config["pipeline"].get("run_virulence", False):
+if config["downstream"].get("run_virulence", False):
     final_targets += expand("results/downstream/virulence/{sample}.tsv", sample=DS_SAMPLES)
-if config["pipeline"].get("run_plasmid", False):
+if config["downstream"].get("run_plasmid", False):
     final_targets += expand("results/downstream/plasmid/{sample}/blast_plasmid_hits.tsv", sample=DS_SAMPLES)
 
 # Add downstream summary if any downstream analysis is enabled
 if any([
-    config["pipeline"].get("run_mlst", False),
-    config["pipeline"].get("run_amr", False),
-    config["pipeline"].get("run_virulence", False),
-    config["pipeline"].get("run_plasmid", False),
+    config["downstream"].get("run_mlst", False),
+    config["downstream"].get("run_amr", False),
+    config["downstream"].get("run_virulence", False),
+    config["downstream"].get("run_plasmid", False),
 ]):
     final_targets += ["results/downstream/summary.xlsx"]
 
@@ -112,10 +112,10 @@ include: "rules/phylogeny.smk"
 include: "rules/reporting.smk"
 
 if any([
-    config["pipeline"].get("run_mlst", False),
-    config["pipeline"].get("run_amr", False),
-    config["pipeline"].get("run_virulence", False),
-    config["pipeline"].get("run_plasmid", False),
+    config["downstream"].get("run_mlst", False),
+    config["downstream"].get("run_amr", False),
+    config["downstream"].get("run_virulence", False),
+    config["downstream"].get("run_plasmid", False),
 ]):
     include: "rules/downstream.smk"
 

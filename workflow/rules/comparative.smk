@@ -28,8 +28,10 @@ rule roary_pangenome:
         extra = config["comparative"].get("extra", "-e -n -v"),
         outgroup_name = config["comparative"].get("outgroup_name", "outgroup")
     log:
-        "logs/roary_pangenome.log"
+        "logs/comparative/roary_pangenome.log"
     threads: workflow.cores if workflow.cores <= 16 else 16  # Use available cores, max 16
+    resources:
+        mem_mb = 32000
     conda:
         "../envs/comparative.yaml"
     shell:
@@ -97,8 +99,10 @@ rule roary_visualization:
         gene_frequency_plot = "results/comparative/gene_frequency_distribution.png",
         html_report = "results/comparative/comparative_genomics_report.html"
     log:
-        "logs/roary_visualization.log"
-    threads: 2
+        "logs/comparative/roary_visualization.log"
+    threads: 8
+    resources:
+        mem_mb = 8000
     conda:
         "../envs/comparative.yaml"
     script:
@@ -111,7 +115,10 @@ rule prepare_phylogeny_input:
         phylip_alignment = "results/comparative/core_alignment.phy",
         alignment_info = "results/comparative/alignment_info.txt"
     log:
-        "logs/prepare_phylogeny.log"
+        "logs/comparative/prepare_phylogeny.log"
+    threads: 4
+    resources:
+        mem_mb = 4000
     conda:
         "../envs/comparative.yaml"
     script:

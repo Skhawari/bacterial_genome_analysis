@@ -1,256 +1,289 @@
-# scripts/aggregate_downstream.py
-
+#!/usr/bin/env python3
 import pandas as pd
 import glob
-import yaml
 from pathlib import Path
-import sys
 import os
 
-def main():
-    print("🔎 Aggregating downstream analysis results...\n")
+def escape_excel_formulas(df):
+    """Escape potential Excel formula characters for security"""
+    for col in df.select_dtypes(include=['object']):
+        if df[col].dtype == 'object':
+            df[col] = df[col].astype(str).str.replace('\x00', '', regex=False)  # Remove null bytes
+            df[col] = df[col].str.replace('^=', "'=", regex=True)   # Escape leading equals
+            df[col] = df[col].str.replace('^\\+', "'+", regex=True) # Escape leading plus
+            df[col] = df[col].str.replace('^-', "'-", regex=True)   # Escape leading minus
+            df[col] = df[col].str.replace('^@', "'@", regex=True)   # Escape leading at
+    return df
 
-    # Load config - try to detect which config file is being used
-    config_files = ["config2/config.yaml", "config/config.yaml"]
-    cfg = None
+def read_abricate(module_name, pattern, samples):
+    """Read and aggregate abricate output files (AMR/Virulence)"""
+    dfs = []
+    successful_files = 0
     
-    for config_file in config_files:
+    for fp in glob.glob(pattern):
         try:
-            if Path(config_file).exists():
-                with open(config_file, 'r') as f:
-                    cfg = yaml.safe_load(f)
-                print(f"📄 Using config: {config_file}")
-                break
+            sample = Path(fp).stem
+            if sample not in samples:
+                continue
+            
+            # Check if file exists and is not empty
+            if not os.path.exists(fp) or os.path.getsize(fp) == 0:
+                print(f" {sample}: Empty or missing file")
+                continue
+            
+            # Read file with error handling
+            df = pd.read_csv(fp, sep="\t", dtype=str, skiprows=1, header=None)
+            if df.empty:
+                print(f" {sample}: No data after header")
+                continue
+                
+            # Add proper column names
+            df.columns = [
+                'FILE', 'SEQUENCE', 'START', 'END', 'STRAND', 'GENE', 'COVERAGE',
+                'COVERAGE_MAP', 'GAPS', 'PERCENT_COVERAGE', 'PERCENT_IDENTITY',
+                'DATABASE', 'ACCESSION', 'PRODUCT', 'RESISTANCE'
+            ]
+            df.insert(0, 'sample', sample)
+            dfs.append(df)
+            successful_files += 1
+            print(f"   → {sample}: {len(df)} {module_name.lower()} hits")
+            
         except Exception as e:
-            print(f"⚠️ Could not load {config_file}: {e}")
+            print(f" Error reading {fp}: {e}")
             continue
     
-    if cfg is None:
-        print("❌ No valid config file found")
-        return
+    combined = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+    print(f" {module_name} → {len(combined)} entries from {successful_files} files")
+    return combined
 
-    # Get samples & blacklist
+def create_summary_report(downstream_cfg, samples):
+    """Create summary report when no data is available"""
+    summary_data = []
+    
+    for module in ['run_mlst', 'run_amr', 'run_virulence', 'run_plasmid']:
+        if downstream_cfg.get(module, False):
+            file_patterns = {
+                'run_mlst': 'results/downstream/mlst/*.txt',
+                'run_amr': 'results/downstream/amr/*.tsv',
+                'run_virulence': 'results/downstream/virulence/*.tsv',
+                'run_plasmid': 'results/downstream/plasmid/*/blast_plasmid_hits.tsv'
+            }
+            
+            pattern = file_patterns[module]
+            files_found = len(glob.glob(pattern))
+            
+            summary_data.append({
+                'Module': module.replace('run_', '').upper(),
+                'Enabled': True,
+                'Files_Found': files_found,
+                'Expected_Samples': len(samples),
+                'Status': 'No data' if files_found == 0 else 'Files exist but empty or unreadable'
+            })
+    
+    return pd.DataFrame(summary_data)
+
+def main():
+    print("Aggregating downstream analysis results...\n")
+    
+    # Load the Snakemake config directly
+    cfg = snakemake.config
+    downstream_cfg = cfg.get("downstream", {})
+
+    # Collect sample list and apply complete_blacklist
     try:
         samples_df = pd.read_csv(cfg["samples"], sep="\t")
-        all_samples = samples_df["sample"].tolist()
-
-        blacklist = []
-        if cfg.get("complete_blacklist") and Path(cfg["complete_blacklist"]).exists():
-            with open(cfg["complete_blacklist"], 'r') as f:
-                blacklist = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-
-        samples = [s for s in all_samples if s not in blacklist]
+        samples = samples_df["sample"].tolist()
+        
+        # Apply blacklist
+        bl_file = cfg.get("complete_blacklist", "")
+        if bl_file and Path(bl_file).exists():
+            with open(bl_file) as f:
+                blacklist = [l.strip() for l in f if l.strip() and not l.startswith("#")]
+            samples = [s for s in samples if s not in blacklist]
+            print(f"Applied blacklist: {len(blacklist)} samples excluded")
         
         # Add outgroup if configured
-        if cfg.get("outgroup_fasta", ""):
-            outgroup_name = cfg.get("outgroup_name", "outgroup")
-            if outgroup_name not in samples:
-                samples.append(outgroup_name)
+        og_fasta = cfg.get("outgroup_fasta", "")
+        if og_fasta:
+            og_name = cfg.get("outgroup_name", "outgroup")
+            if og_name not in samples:
+                samples.append(og_name)
+                print(f"Added outgroup: {og_name}")
                 
-        print(f" {len(samples)} samples will be processed (excluded {len(blacklist)} blacklisted)\n")
-
+        print(f"Processing {len(samples)} samples total\n")
+        
     except Exception as e:
-        print(f" Error reading sample or blacklist files: {e}")
+        print(f"Error reading sample configuration: {e}")
         return
 
-    # Output dir
+    # Ensure output directory exists
     Path("results/downstream").mkdir(parents=True, exist_ok=True)
 
-    # Collect all data first to ensure we have something to write
+    # Collect all data with robust error handling
     all_data = {}
-    
-    # MLST Processing (custom format)
-    if cfg["pipeline"].get("run_mlst", False):
+    modules_processed = 0
+
+    # MLST Processing
+    if downstream_cfg.get("run_mlst", False):
         print(" Aggregating MLST...")
-        mlst_files = glob.glob("results/downstream/mlst/*.txt")
-        mlst_data = []
+        records = []
+        successful_files = 0
         
-        for f in mlst_files:
+        for fp in glob.glob("results/downstream/mlst/*.txt"):
             try:
-                sample = Path(f).stem
+                sample = Path(fp).stem
                 if sample not in samples:
                     continue
-                    
-                with open(f, 'r') as file:
-                    line = file.readline().strip()
-                    if line:
-                        # MLST format: file\tscheme\tST\tgene1\tgene2...
-                        parts = line.split('\t')
-                        if len(parts) >= 3:
-                            mlst_data.append({
-                                'sample': sample,
-                                'file': parts[0],
-                                'scheme': parts[1],
-                                'sequence_type': parts[2],
-                                'alleles': '\t'.join(parts[3:]) if len(parts) > 3 else ''
-                            })
-                            print(f"   → {sample}: {parts[1]} scheme, ST {parts[2]}")
-            except Exception as e:
-                print(f"⚠️ Could not read MLST file {f}: {e}")
                 
-        if mlst_data:
-            all_data['MLST'] = pd.DataFrame(mlst_data)
-            print(f" MLST → {len(mlst_data)} entries")
+                # Check file exists and is not empty
+                if not os.path.exists(fp) or os.path.getsize(fp) == 0:
+                    print(f" {sample}: Empty or missing MLST file")
+                    continue
+                
+                # Read and parse MLST line
+                lines = Path(fp).read_text().strip().splitlines()
+                if not lines:
+                    print(f" {sample}: Empty MLST file")
+                    continue
+                    
+                line = lines[0].strip()
+                parts = line.split("\t")
+                
+                if len(parts) >= 3:
+                    records.append({
+                        "sample": sample,
+                        "file": parts[0],
+                        "scheme": parts[1],
+                        "sequence_type": parts[2],
+                        "alleles": '\t'.join(parts[3:]) if len(parts) > 3 else ''
+                    })
+                    successful_files += 1
+                    print(f" {sample}: {parts[1]} scheme, ST {parts[2]}")
+                else:
+                    print(f" {sample}: Invalid MLST format ({len(parts)} columns)")
+                    
+            except Exception as e:
+                print(f"Error reading MLST file {fp}: {e}")
+                continue
+        
+        if records:
+            all_data["MLST"] = pd.DataFrame(records)
+            modules_processed += 1
+        print(f" MLST → {len(records)} entries from {successful_files} files\n")
 
     # AMR Processing
-    if cfg["pipeline"].get("run_amr", False):
-        print(" Aggregating AMR...")
-        amr_files = glob.glob("results/downstream/amr/*.tsv")
-        amr_data = []
-        
-        for f in amr_files:
-            try:
-                sample = Path(f).stem
-                if sample not in samples:
-                    continue
-                    
-                if os.path.getsize(f) > 0:  # Check if file is not empty
-                    # AMR files have problematic headers - read without header and add manually
-                    try:
-                        # Skip the header line and read data
-                        df = pd.read_csv(f, sep="\t", dtype=str, skiprows=1, header=None)
-                        if not df.empty:
-                            # Add column names manually based on AMR output format
-                            df.columns = ['FILE', 'SEQUENCE', 'START', 'END', 'STRAND', 'GENE', 'COVERAGE', 'COVERAGE_MAP', 'GAPS', 'PERCENT_COVERAGE', 'PERCENT_IDENTITY', 'DATABASE', 'ACCESSION', 'PRODUCT', 'RESISTANCE']
-                            df.insert(0, 'sample', sample)
-                            amr_data.append(df)
-                            print(f"   → {sample}: {len(df)} AMR hits")
-                    except Exception as parse_error:
-                        print(f"⚠️ Parse error for AMR file {f}: {parse_error}")
-            except Exception as e:
-                print(f"⚠️ Could not read AMR file {f}: {e}")
-                
-        if amr_data:
-            all_data['AMR'] = pd.concat(amr_data, ignore_index=True)
-            print(f" AMR → {len(all_data['AMR'])} entries")
+    if downstream_cfg.get("run_amr", False):
+        print("Aggregating AMR...")
+        amr_df = read_abricate("AMR", "results/downstream/amr/*.tsv", samples)
+        if not amr_df.empty:
+            all_data["AMR"] = amr_df
+            modules_processed += 1
+        print()
 
     # Virulence Processing
-    if cfg["pipeline"].get("run_virulence", False):
-        print(" Aggregating Virulence...")
-        vir_files = glob.glob("results/downstream/virulence/*.tsv")
-        vir_data = []
-        
-        for f in vir_files:
-            try:
-                sample = Path(f).stem
-                if sample not in samples:
-                    continue
-                    
-                if os.path.getsize(f) > 0:  # Check if file is not empty
-                    # Virulence files have same header format as AMR - read without header
-                    try:
-                        # Skip the header line and read data
-                        df = pd.read_csv(f, sep="\t", dtype=str, skiprows=1, header=None)
-                        if not df.empty:
-                            # Add column names manually based on virulence output format
-                            df.columns = ['FILE', 'SEQUENCE', 'START', 'END', 'STRAND', 'GENE', 'COVERAGE', 'COVERAGE_MAP', 'GAPS', 'PERCENT_COVERAGE', 'PERCENT_IDENTITY', 'DATABASE', 'ACCESSION', 'PRODUCT', 'RESISTANCE']
-                            df.insert(0, 'sample', sample)
-                            vir_data.append(df)
-                            print(f"   → {sample}: {len(df)} virulence factors")
-                    except Exception as parse_error:
-                        print(f"⚠️ Parse error for virulence file {f}: {parse_error}")
-            except Exception as e:
-                print(f"⚠️ Could not read virulence file {f}: {e}")
-                
-        if vir_data:
-            all_data['Virulence'] = pd.concat(vir_data, ignore_index=True)
-            print(f" Virulence → {len(all_data['Virulence'])} entries")
+    if downstream_cfg.get("run_virulence", False):
+        print("Aggregating Virulence...")
+        vir_df = read_abricate("Virulence", "results/downstream/virulence/*.tsv", samples)
+        if not vir_df.empty:
+            all_data["Virulence"] = vir_df
+            modules_processed += 1
+        print()
 
     # Plasmid Processing
-    if cfg["pipeline"].get("run_plasmid", False):
-        print(" Aggregating Plasmid BLAST...")
-        plasmid_files = glob.glob("results/downstream/plasmid/*/blast_plasmid_hits.tsv")
-        plasmid_data = []
+    if downstream_cfg.get("run_plasmid", False):
+        print("Aggregating Plasmid BLAST...")
+        dfs = []
+        successful_files = 0
         
-        for f in plasmid_files:
+        for fp in glob.glob("results/downstream/plasmid/*/blast_plasmid_hits.tsv"):
             try:
-                sample = Path(f).parent.name
+                sample = Path(fp).parent.name
                 if sample not in samples:
                     continue
+                
+                # Check file exists and is not empty
+                if not os.path.exists(fp) or os.path.getsize(fp) == 0:
+                    print(f" {sample}: Empty or missing plasmid file")
+                    continue
+                
+                df = pd.read_csv(fp, sep="\t", header=None, dtype=str,
+                               names=['qseqid', 'sseqid', 'pident', 'length', 'evalue', 'bitscore'])
+                if df.empty:
+                    print(f" {sample}: No plasmid data")
+                    continue
                     
-                if os.path.getsize(f) > 0:  # Check if file is not empty
-                    # BLAST format: qseqid sseqid pident length evalue bitscore
-                    df = pd.read_csv(f, sep="\t", dtype=str, header=None, 
-                                   names=['qseqid', 'sseqid', 'pident', 'length', 'evalue', 'bitscore'])
-                    if not df.empty:
-                        df.insert(0, 'sample', sample)
-                        plasmid_data.append(df)
-                        print(f"   → {sample}: {len(df)} plasmid hits")
+                df.insert(0, 'sample', sample)
+                dfs.append(df)
+                successful_files += 1
+                print(f" {sample}: {len(df)} plasmid hits")
+                
             except Exception as e:
-                print(f"⚠️ Could not read plasmid file {f}: {e}")
-                
-        if plasmid_data:
-            all_data['Plasmid'] = pd.concat(plasmid_data, ignore_index=True)
-            print(f" Plasmid → {len(all_data['Plasmid'])} entries")
+                print(f" Error reading plasmid file {fp}: {e}")
+                continue
+        
+        combined = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+        if not combined.empty:
+            all_data["Plasmid"] = combined
+            modules_processed += 1
+        print(f" Plasmid → {len(combined)} entries from {successful_files} files\n")
 
-    # Write Excel file only if we have data
+    # Write results with robust error handling and security
+    excel_path = Path("results/downstream/summary.xlsx")
+    
     if all_data:
+        print(f" Writing results to Excel ({modules_processed} modules)...")
+        
+        # Remove existing file
+        if excel_path.exists():
+            excel_path.unlink()
+        
         try:
-            # Try to write Excel file
-            excel_path = "results/downstream/summary.xlsx"
-            if os.path.exists(excel_path):
-                os.remove(excel_path)
-                
+            # Try to write Excel file with security measures
+            with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+                for sheet_name, df in all_data.items():
+                    # Ensure valid sheet name (Excel limits)
+                    safe_name = sheet_name[:31].replace('[', '').replace(']', '').replace('*', '').replace('?', '').replace(':', '').replace('/', '_').replace('\\', '_')
+                    
+                    # Apply Excel security - escape formula characters
+                    df_safe = escape_excel_formulas(df.copy())
+                    
+                    # Write to Excel
+                    df_safe.to_excel(writer, sheet_name=safe_name, index=False)
+                    print(f" Sheet '{safe_name}': {len(df_safe)} rows")
+            
+            print(f"\n Success! {excel_path} ({len(all_data)} sheets)")
+            
+        except Exception as e:
+            print(f" Excel write failed: {e}")
+            print(" Falling back to CSV files...")
+            
+            # Fallback mechanism - write CSV files
+            for sheet_name, df in all_data.items():
+                csv_file = Path(f"results/downstream/{sheet_name.lower()}_summary.csv")
+                df_safe = escape_excel_formulas(df.copy())
+                df_safe.to_csv(csv_file, index=False)
+                print(f" Wrote CSV: {csv_file}")
+            
+            print(f"\n Fallback complete → {len(all_data)} CSV files in results/downstream/")
+    
+    else:
+        print("No downstream data found to aggregate.")
+        print("Creating summary report...")
+        
+        # Create summary report even when no data
+        summary_df = create_summary_report(downstream_cfg, samples)
+        
+        if not summary_df.empty:
             try:
                 with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
-                    for sheet_name, df in all_data.items():
-                        # Ensure valid sheet name (Excel limit 31 chars, no special chars)
-                        safe_name = sheet_name[:31].replace('[', '').replace(']', '').replace('*', '').replace('?', '').replace(':', '').replace('/', '_').replace('\\', '_')
-                        
-                        # Clean data for Excel compatibility - CRITICAL: Handle formula characters
-                        for col in df.columns:
-                            if df[col].dtype == 'object':
-                                # Replace characters that Excel interprets as formulas
-                                df[col] = df[col].astype(str).str.replace('\x00', '', regex=False)  # Remove null bytes
-                                df[col] = df[col].str.replace('^=', "'=", regex=True)  # Escape leading equals
-                                df[col] = df[col].str.replace('^\\+', "'+", regex=True)  # Escape leading plus
-                                df[col] = df[col].str.replace('^-', "'-", regex=True)  # Escape leading minus
-                                df[col] = df[col].str.replace('^@', "'@", regex=True)  # Escape leading at
-                        
-                        df.to_excel(writer, sheet_name=safe_name, index=False)
-                        
-                print(f"\n✅ Aggregation complete → results/downstream/summary.xlsx ({len(all_data)} sheets)")
-                
-            except ImportError:
-                print("⚠️ openpyxl not available, writing CSV files instead...")
-                raise Exception("openpyxl not found")
-                
-        except Exception as e:
-            print(f"⚠️ Excel write failed: {e}")
-            # Fallback: write as CSV files
-            for sheet_name, df in all_data.items():
-                csv_file = f"results/downstream/{sheet_name.lower()}_summary.csv"
-                df.to_csv(csv_file, index=False)
-                print(f"📄 Wrote CSV: {csv_file}")
-            print(f"\n✅ Aggregation complete → {len(all_data)} CSV files in results/downstream/")
-    else:
-        print("⚠️ No data found to aggregate. Creating summary report.")
-        # Create a summary of what was attempted
-        summary_data = []
-        for module in ['run_mlst', 'run_amr', 'run_virulence', 'run_plasmid']:
-            if cfg["pipeline"].get(module, False):
-                file_pattern = {
-                    'run_mlst': 'results/downstream/mlst/*.txt',
-                    'run_amr': 'results/downstream/amr/*.tsv',
-                    'run_virulence': 'results/downstream/virulence/*.tsv',
-                    'run_plasmid': 'results/downstream/plasmid/*/blast_plasmid_hits.tsv'
-                }[module]
-                
-                files_found = len(glob.glob(file_pattern))
-                summary_data.append({
-                    'Module': module.replace('run_', '').upper(),
-                    'Enabled': True,
-                    'Files_Found': files_found,
-                    'Status': 'No data' if files_found == 0 else 'Files exist but empty or unreadable'
-                })
-        
-        if summary_data:
-            summary_df = pd.DataFrame(summary_data)
-            with pd.ExcelWriter("results/downstream/summary.xlsx", engine="openpyxl") as writer:
-                summary_df.to_excel(writer, sheet_name="Summary", index=False)
-            print("📄 Created summary report")
+                    summary_df.to_excel(writer, sheet_name="Summary", index=False)
+                print(f" Created summary report → {excel_path}")
+            except Exception as e:
+                print(f" Could not write summary: {e}")
         else:
-            print("⚠️ No downstream modules enabled")
+            print(" No downstream modules enabled in config")
+
+    print("\n Aggregation completed!")
 
 if __name__ == "__main__":
     main()

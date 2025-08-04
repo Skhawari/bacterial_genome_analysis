@@ -48,10 +48,10 @@ busco:
   extra: "--force --offline"
 
 # downstream analysis parameters
-pipeline:
-  run_mlst:      true # Options: true, false
+downstream:
+  run_mlst:      false # Options: true, false
   run_amr:       true # Options: true, false
-  run_virulence: true # Options: true, false
+  run_virulence: false # Options: true, false
   run_plasmid:   true # Options: true, false
 
 mlst:

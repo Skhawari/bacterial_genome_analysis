@@ -9,9 +9,9 @@ rule fastqc_raw:
         zip = "results/fastqc_raw/{sample}_{idx}_fastqc.zip"
     log:
         "logs/fastqc_raw/{sample}_{idx}.log"
-    threads: 4
+    threads: 16
     resources:
-        mem_mb = 1000
+        mem_mb = 4000
     wrapper:
         "v6.2.0/bio/fastqc"
 
@@ -24,7 +24,7 @@ rule fastp:
         json = "results/qc/fastp/{sample}.json"
     log:
         "logs/fastp/{sample}.log"
-    threads: 8
+    threads: 32
     wrapper:
         "v6.2.0/bio/fastp"
 
@@ -36,9 +36,9 @@ rule fastqc_trimmed:
         zip = "results/fastqc_trimmed/{sample}_R{idx}_fastqc.zip"
     log:
         "logs/fastqc_trimmed/{sample}_{idx}.log"
-    threads: 4
+    threads: 8
     resources:
-        mem_mb = 1000
+        mem_mb = 4000
     wrapper:
         "v6.2.0/bio/fastqc"
 
@@ -50,12 +50,12 @@ rule nanostat_raw:
         stats = "results/nanostat_raw/{sample}.txt"
     log:
         "logs/nanostat_raw/{sample}.log"
-    threads: 1
+    threads: 8
     conda:
         "../envs/qc.yaml"
     shell:
         """
-        NanoStat --fastq {input.fastq} > {output.stats} 2> {log}
+        NanoStat --fastq {input.fastq} --threads {threads} > {output.stats} 2> {log}
         """
 
 rule nanostat_filtered:
@@ -65,12 +65,12 @@ rule nanostat_filtered:
         stats = "results/nanostat_filtered/{sample}.txt"
     log:
         "logs/nanostat_filtered/{sample}.log"
-    threads: 1
+    threads: 4
     conda:
         "../envs/qc.yaml"
     shell:
         """
-        NanoStat --fastq {input.fastq} > {output.stats} 2> {log}
+        NanoStat --fastq {input.fastq} --threads {threads} > {output.stats} 2> {log}
         """
 
 # Optional: Long-read filtering with Filtlong (for bacterial genomes, typically filter reads >1kb and keep best quality)
@@ -81,7 +81,7 @@ rule filtlong_filter:
         filtered = "results/filtered_long_reads/{sample}.fastq.gz"
     log:
         "logs/filtlong/{sample}.log"
-    threads: 4
+    threads: 1
     conda:
         "../envs/qc.yaml"
     shell:
@@ -105,7 +105,7 @@ rule multiqc:
         html = "results/multiqc/multiqc_report.html"
     log:
         "logs/multiqc/multiqc.log"
-    threads: 4
+    threads: 1
     conda:
         "../envs/qc.yaml"
     shell:

@@ -27,8 +27,10 @@ rule iqtree_phylogeny:
         outgroup = config.get("outgroup_name", ""),
         threads_iqtree = lambda wildcards, threads: min(threads, 16)  # IQ-TREE works best with ≤16 threads
     log:
-        "logs/iqtree_phylogeny.log"
+        "logs/phylogeny/iqtree_phylogeny.log"
     threads: workflow.cores if workflow.cores <= 16 else 16
+    resources:
+        mem_mb = 32000
     conda:
         "../envs/phylogeny.yaml"
     shell:
@@ -41,6 +43,7 @@ rule iqtree_phylogeny:
         echo "Model selection: {params.model_selection}" | tee -a {log}
         echo "Bootstrap replicates: {params.bootstrap_replicates}" | tee -a {log}
         echo "Threads: {params.threads_iqtree}" | tee -a {log}
+        echo "Memory: {resources.mem_mb}MB"  | tee -a {log}
         
         # Build IQ-TREE command
         iqtree_cmd="iqtree -s {params.prefix}.phy -m {params.model_selection} -bb {params.bootstrap_replicates} -nt {params.threads_iqtree}"
@@ -106,8 +109,8 @@ rule phylogeny_visualization:
         html_report = "results/phylogeny/phylogeny_report.html",
         tree_stats = "results/phylogeny/tree_statistics.txt"
     log:
-        "logs/phylogeny_visualization.log"
-    threads: 2
+        "logs/phylogeny/phylogeny_visualization.log"
+    threads: 8
     conda:
         "../envs/phylogeny.yaml"
     script:
@@ -123,7 +126,7 @@ rule phylogeny_summary:
     output:
         summary_report = "results/phylogeny/phylogeny_summary.txt"
     log:
-        "logs/phylogeny_summary.log"
+        "logs/phylogeny/phylogeny_summary.log"
     shell:
         """
         echo "Phylogenetic Analysis Summary" > {output.summary_report}

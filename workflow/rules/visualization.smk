@@ -12,10 +12,12 @@ rule prokka_visualization:
         html_report = "results/visualization/prokka_annotation_report.html",
         pdf_report = "results/visualization/prokka_annotation_report.pdf",
         summary_plot = "results/visualization/annotation_summary.png",
-        functional_plot = "results/visualization/functional_categories.png"
+        functional_plot = "results/visualization/functional_categories.png",
+        interactive_report   = "results/visualization/prokka_annotation_report_interactive.html"
+
     log:
-        "logs/prokka_visualization.log"
-    threads: 4
+        "logs/visualization/prokka_visualization.log"
+    threads: 8
     conda:
         "../envs/visualization.yaml"
     script:
@@ -37,8 +39,8 @@ rule enhanced_data_visualization:
         # Comprehensive report combining all statistical analysis
         comprehensive_report = "results/enhanced_visualization/comprehensive_analysis_report.pdf"
     log:
-        "logs/enhanced_data_visualization.log"
-    threads: 4
+        "logs/visualization/enhanced_data_visualization.log"
+    threads: 8
     conda:
         "../envs/visualization.yaml"
     script:

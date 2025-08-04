@@ -1,81 +1,732 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>{{ title }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+        }
 
-  <!-- Bootstrap CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-color);
+            line-height: 1.6;
+        }
+        
+        /* Header Styles */
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,0 1000,100 1000,0"/></svg>');
+            pointer-events: none;
+        }
+        
+        .main-header h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-header .lead {
+            font-size: clamp(0.9rem, 2.5vw, 1.25rem);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .timestamp {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
+        }
 
-  <style>
-    body { margin: 30px; font-family: sans-serif; }
-    iframe { width: 100%; height: 600px; border: 1px solid #ccc; margin-top: 10px; }
-    .section-title { margin-top: 50px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
-    .nav-tabs .nav-link.active { font-weight: bold; }
-    .table { font-size: 0.9em; }
-  </style>
+        /* Container Responsive */
+        .main-container {
+            max-width: 100%;
+            padding: 0 15px;
+        }
+        
+        @media (min-width: 768px) {
+            .main-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 30px;
+            }
+        }
+
+        /* Tab Styles */
+        .nav-tabs {
+            border-bottom: 3px solid var(--primary-color);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 0;
+            color: var(--secondary-color);
+            font-weight: 500;
+            padding: 1rem 0.75rem;
+            margin: 0 0.25rem;
+            position: relative;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+        
+        @media (min-width: 768px) {
+            .nav-tabs .nav-link {
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border: none;
+            color: var(--primary-color);
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background-color: transparent;
+            border: none;
+            font-weight: 600;
+        }
+        
+        .nav-tabs .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), #0056b3);
+            border-radius: 2px 2px 0 0;
+        }
+        
+        .nav-tabs .nav-link i {
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            min-height: 600px;
+        }
+        
+        .tab-pane {
+            padding: 0;
+        }
+        
+        .tab-pane.active {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* iframe Responsive */
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            min-height: 500px;
+            max-height: 800px;
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0;
+        }
+
+        /* Phylogeny Special Layout */
+        .phylogeny-content {
+            padding: 1.5rem;
+        }
+        
+        .tree-container {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .tree-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            cursor: zoom-in;
+            transition: transform 0.3s ease;
+        }
+        
+        .tree-container img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Downstream Tables */
+        .downstream-content {
+            padding: 1.5rem;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+        
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Alert Styles */
+        .alert {
+            border: none;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .alert-info {
+            border-left-color: var(--info-color);
+            background-color: rgba(23, 162, 184, 0.1);
+        }
+        
+        .alert-warning {
+            border-left-color: var(--warning-color);
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+        
+        .alert-success {
+            border-left-color: var(--success-color);
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+        /* Summary Section */
+        .summary-content {
+            padding: 2rem 1.5rem;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        @media (min-width: 768px) {
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .summary-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .summary-card h6 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .summary-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .summary-card li {
+            padding: 0.25rem 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .summary-card li i {
+            margin-right: 0.5rem;
+            width: 16px;
+            text-align: center;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--dark-color), #495057);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            text-align: center;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        @media (min-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+                text-align: left;
+            }
+            
+            .footer-right {
+                text-align: right;
+            }
+        }
+
+        /* Scroll to Top */
+        .scroll-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+        
+        .scroll-to-top:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+        }
+
+        /* Loading Spinner for iframes */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: var(--secondary-color);
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 767px) {
+            .main-header {
+                padding: 1.5rem 0;
+            }
+            
+            .nav-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                scrollbar-width: thin;
+            }
+            
+            .nav-tabs::-webkit-scrollbar {
+                height: 3px;
+            }
+            
+            .nav-tabs::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+            
+            .nav-tabs::-webkit-scrollbar-thumb {
+                background: var(--primary-color);
+                border-radius: 3px;
+            }
+            
+            .iframe-container {
+                height: 60vh;
+                min-height: 400px;
+            }
+            
+            .downstream-content {
+                padding: 1rem;
+                max-height: 60vh;
+            }
+            
+            .summary-content {
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-
-  <div class="container">
-
-    <h1 class="mb-4">{{ title }}</h1>
-
-    <div class="section">
-      <h2 class="section-title">1. QC Report</h2>
-      <iframe src="{{ qc_iframe }}"></iframe>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">2. Assembly QA</h2>
-      <iframe src="{{ assembly_iframe }}"></iframe>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">3. Comparative Genomics</h2>
-      <iframe src="{{ comp_iframe }}"></iframe>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">4. Phylogenetic Analysis</h2>
-      <iframe src="{{ phylo_iframe }}"></iframe>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">5. Downstream Summary</h2>
-
-      {% if downstream_tables %}
-        <!-- Nav Tabs -->
-        <ul class="nav nav-tabs" id="downstreamTabs" role="tablist">
-          {% for sheet in downstream_tables.keys() %}
-          <li class="nav-item" role="presentation">
-            <button class="nav-link {% if loop.first %}active{% endif %}" id="tab-{{ loop.index }}-tab"
-              data-bs-toggle="tab" data-bs-target="#tab-{{ loop.index }}"
-              type="button" role="tab" aria-controls="tab-{{ loop.index }}"
-              aria-selected="{{ 'true' if loop.first else 'false' }}">
-              {{ sheet }}
-            </button>
-          </li>
-          {% endfor %}
-        </ul>
-
-        <!-- Tab Content -->
-        <div class="tab-content mt-3" id="downstreamTabsContent">
-          {% for sheet, html_table in downstream_tables.items() %}
-          <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tab-{{ loop.index }}"
-            role="tabpanel" aria-labelledby="tab-{{ loop.index }}-tab">
-            {{ html_table | safe }}
-          </div>
-          {% endfor %}
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <h1><i class="fas fa-dna"></i> {{ title }}</h1>
+            <p class="lead">Comprehensive Bacterial Genome Analysis Pipeline</p>
+            <div class="timestamp">
+                <i class="fas fa-clock"></i> Generated on: {{ now }}
+            </div>
         </div>
+    </header>
 
-      {% else %}
-        <p class="text-muted">No downstream tables available.</p>
-      {% endif %}
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-tabs" id="analysisTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="qc-tab" data-bs-toggle="tab" data-bs-target="#qc" type="button" role="tab" aria-controls="qc" aria-selected="true">
+                                <i class="fas fa-check-circle"></i> <span class="d-none d-sm-inline">Quality Control</span><span class="d-inline d-sm-none">QC</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="assembly-tab" data-bs-toggle="tab" data-bs-target="#assembly" type="button" role="tab" aria-controls="assembly" aria-selected="false">
+                                <i class="fas fa-puzzle-piece"></i> <span class="d-none d-sm-inline">Assembly QA</span><span class="d-inline d-sm-none">Assembly</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="annotation-tab" data-bs-toggle="tab" data-bs-target="#annotation" type="button" role="tab" aria-controls="annotation" aria-selected="false">
+                                <i class="fas fa-tags"></i> <span class="d-none d-sm-inline">Annotation</span><span class="d-inline d-sm-none">Anno</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="comparative-tab" data-bs-toggle="tab" data-bs-target="#comparative" type="button" role="tab" aria-controls="comparative" aria-selected="false">
+                                <i class="fas fa-balance-scale"></i> <span class="d-none d-sm-inline">Comparative</span><span class="d-inline d-sm-none">Comp</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="phylogeny-tab" data-bs-toggle="tab" data-bs-target="#phylogeny" type="button" role="tab" aria-controls="phylogeny" aria-selected="false">
+                                <i class="fas fa-sitemap"></i> <span class="d-none d-sm-inline">Phylogeny</span><span class="d-inline d-sm-none">Phylo</span>
+                            </button>
+                        </li>
+                        {% if downstream_enabled %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="downstream-tab" data-bs-toggle="tab" data-bs-target="#downstream" type="button" role="tab" aria-controls="downstream" aria-selected="false">
+                                <i class="fas fa-stream"></i> <span class="d-none d-sm-inline">Downstream</span><span class="d-inline d-sm-none">Down</span>
+                            </button>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="false">
+                                <i class="fas fa-clipboard-list"></i> <span class="d-none d-sm-inline">Summary</span><span class="d-inline d-sm-none">Sum</span>
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="analysisTabContent">
+                        <!-- Quality Control Tab -->
+                        <div class="tab-pane fade show active" id="qc" role="tabpanel" aria-labelledby="qc-tab">
+                            <div class="iframe-container">
+                                <iframe src="{{ qc_iframe }}" loading="lazy" title="Quality Control Report"></iframe>
+                            </div>
+                        </div>
+
+                        <!-- Assembly QA Tab -->
+                        <div class="tab-pane fade" id="assembly" role="tabpanel" aria-labelledby="assembly-tab">
+                            <div class="iframe-container">
+                                <iframe src="{{ assembly_iframe }}" loading="lazy" title="Assembly Quality Assessment Report"></iframe>
+                            </div>
+                        </div>
+
+                        <!-- Annotation Tab -->
+                        <div class="tab-pane fade" id="annotation" role="tabpanel" aria-labelledby="annotation-tab">
+                            <div class="iframe-container">
+                                <iframe src="{{ prokka_iframe }}" loading="lazy" title="Prokka Annotation Report"></iframe>
+                            </div>
+                        </div>
+
+                        <!-- Comparative Genomics Tab -->
+                        <div class="tab-pane fade" id="comparative" role="tabpanel" aria-labelledby="comparative-tab">
+                            <div class="iframe-container">
+                                <iframe src="{{ comp_iframe }}" loading="lazy" title="Comparative Genomics Report"></iframe>
+                            </div>
+                        </div>
+
+                        <!-- Phylogeny Tab -->
+                        <div class="tab-pane fade" id="phylogeny" role="tabpanel" aria-labelledby="phylogeny-tab">
+                            <div class="phylogeny-content">
+                                <div class="row">
+                                    <div class="col-lg-8 mb-4">
+                                        <h5><i class="fas fa-sitemap"></i> Phylogenetic Analysis Report</h5>
+                                        <div class="iframe-container" style="height: 500px;">
+                                            <iframe src="{{ phylo_iframe }}" loading="lazy" title="Phylogenetic Analysis Report"></iframe>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <h5><i class="fas fa-tree"></i> Phylogenetic Tree</h5>
+                                        <div class="tree-container">
+                                            <img src="{{ tree_image }}" alt="Phylogenetic Tree" class="img-fluid" id="phyloTree">
+                                            <p class="mt-3 text-muted">
+                                                <small><i class="fas fa-info-circle"></i> Click image to zoom</small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Downstream Analysis Tab -->
+                        {% if downstream_enabled %}
+                        <div class="tab-pane fade" id="downstream" role="tabpanel" aria-labelledby="downstream-tab">
+                            <div class="downstream-content">
+                                {% if has_downstream_results %}
+                                    <div class="alert alert-info">
+                                        <h5><i class="fas fa-info-circle"></i> Available Downstream Analyses</h5>
+                                        <p>The following specialized analyses have been performed:</p>
+                                        <ul class="mb-0">
+                                            {% for table_name in downstream_tables.keys() %}
+                                            <li>{{ table_name }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- Downstream Results Tables -->
+                                    {% for table_name, table_html in downstream_tables.items() %}
+                                    <div class="mb-4">
+                                        <h5><i class="fas fa-table"></i> {{ table_name }}</h5>
+                                        <div class="table-responsive">
+                                            {{ table_html|safe }}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    
+                                    <div class="alert alert-success">
+                                        <h6><i class="fas fa-download"></i> Download Results</h6>
+                                        <p class="mb-0">
+                                            All downstream analysis results are available as Excel file: 
+                                            <a href="downstream_sum.xlsx" class="btn btn-sm btn-outline-success ms-2">
+                                                <i class="fas fa-file-excel"></i> Download Excel
+                                            </a>
+                                        </p>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-warning">
+                                        <h5><i class="fas fa-exclamation-triangle"></i> No Downstream Results Available</h5>
+                                        <p class="mb-0">
+                                            Downstream analyses are enabled but no results were generated. 
+                                            This may occur when no corresponding features are found in the genomes.
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Summary Tab -->
+                        <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                            <div class="summary-content">
+                                <div class="summary-grid">
+                                    <div class="summary-card">
+                                        <h6><i class="fas fa-check-circle text-success"></i> Completed Analyses</h6>
+                                        <ul>
+                                            <li><i class="fas fa-check text-success"></i> Sequence Quality Control</li>
+                                            <li><i class="fas fa-check text-success"></i> Genome Assembly and Quality Assessment</li>
+                                            <li><i class="fas fa-check text-success"></i> Genomic Annotation</li>
+                                            <li><i class="fas fa-check text-success"></i> Comparative Genome Analysis</li>
+                                            <li><i class="fas fa-check text-success"></i> Phylogenetic Reconstruction</li>
+                                            {% if downstream_enabled %}
+                                            <li><i class="fas fa-check text-success"></i> Specialized Downstream Analyses</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                    <div class="summary-card">
+                                        <h6><i class="fas fa-file-alt text-info"></i> Available Reports</h6>
+                                        <ul>
+                                            <li><a href="multiqc_report.html" target="_blank"><i class="fas fa-external-link-alt"></i> MultiQC Report</a></li>
+                                            <li><a href="assembly_multiqc_report.html" target="_blank"><i class="fas fa-external-link-alt"></i> Assembly QA Report</a></li>
+                                            <li><a href="prokka_report.html" target="_blank"><i class="fas fa-external-link-alt"></i> Prokka Annotation Report</a></li>
+                                            <li><a href="comparative_genomics_report.html" target="_blank"><i class="fas fa-external-link-alt"></i> Comparative Genomics Report</a></li>
+                                            <li><a href="phylogeny_report.html" target="_blank"><i class="fas fa-external-link-alt"></i> Phylogeny Report</a></li>
+                                            {% if downstream_enabled %}
+                                            <li><a href="downstream_sum.xlsx" target="_blank"><i class="fas fa-external-link-alt"></i> Downstream Analysis Summary</a></li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-  </div>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h6><i class="fas fa-dna"></i> Bacterial Genome Analysis Pipeline</h6>
+                    <p class="mb-0">Powered by FU bioinformatics students</p>
+                </div>
+                <div class="footer-right">
+                    <p class="mb-0">
+                        <i class="fas fa-calendar-alt"></i> Generated: {{ now }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-code"></i> Pipeline Version: 1.0
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" id="scrollToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Scroll to top functionality
+        const scrollToTop = document.getElementById('scrollToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTop.style.display = 'block';
+            } else {
+                scrollToTop.style.display = 'none';
+            }
+        });
+
+        scrollToTop.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Phylogenetic tree zoom functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const phyloTree = document.getElementById('phyloTree');
+            if (phyloTree) {
+                let isZoomed = false;
+                
+                phyloTree.addEventListener('click', function() {
+                    if (!isZoomed) {
+                        this.style.transform = 'scale(1.5)';
+                        this.style.cursor = 'zoom-out';
+                        this.style.transition = 'transform 0.3s ease';
+                        isZoomed = true;
+                    } else {
+                        this.style.transform = 'scale(1)';
+                        this.style.cursor = 'zoom-in';
+                        isZoomed = false;
+                    }
+                });
+            }
+        });
+
+        // Tab switching with URL hash support
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for hash in URL and activate corresponding tab
+            if (window.location.hash) {
+                const hash = window.location.hash.substring(1);
+                const tabTrigger = document.querySelector(`#${hash}-tab`);
+                if (tabTrigger) {
+                    const tab = new bootstrap.Tab(tabTrigger);
+                    tab.show();
+                }
+            }
+            
+            // Update URL hash when tab changes
+            const tabTriggers = document.querySelectorAll('[data-bs-toggle="tab"]');
+            tabTriggers.forEach(trigger => {
+                trigger.addEventListener('shown.bs.tab', function(e) {
+                    const targetId = e.target.getAttribute('data-bs-target').substring(1);
+                    window.history.replaceState(null, null, `#${targetId}`);
+                });
+            });
+        });
+
+        // Loading indicator for iframes
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                iframe.addEventListener('load', function() {
+                    // Remove any loading indicators if present
+                    const loader = this.parentElement.querySelector('.loading-spinner');
+                    if (loader) {
+                        loader.remove();
+                    }
+                });
+            });
+        });
+
+        // Responsive table handling
+        function makeTablesResponsive() {
+            const tables = document.querySelectorAll('.downstream-content table');
+            tables.forEach(table => {
+                if (!table.closest('.table-responsive')) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'table-responsive';
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                }
+            });
+        }
+
+        // Initialize responsive tables when downstream tab is shown
+        document.querySelector('#downstream-tab')?.addEventListener('shown.bs.tab', makeTablesResponsive);
+    </script>
 </body>
 </html>
+<!-- End of final_report.html.j2 -->

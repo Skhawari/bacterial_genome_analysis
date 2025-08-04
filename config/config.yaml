@@ -2,6 +2,8 @@ samples: "config/samples.tsv"
 long_read_samples: "config/samples_long_read.tsv"
 long_read_blacklist: "config/blacklist.txt"
 complete_blacklist: "config/complete_blacklist.txt"
+outgroup_name: "og"
+
 
   # BLACKLIST SYSTEM:
   # 1. long_read_blacklist: Excludes samples from using long reads (falls back to short-read assembly)
@@ -73,10 +75,10 @@ busco:
 
 
 # downstream analysis parameters
-pipeline:
-  run_mlst:      true # Options: true, false
+downstream:
+  run_mlst:      false # Options: true, false
   run_amr:       true # Options: true, false
-  run_virulence: true # Options: true, false
+  run_virulence: false # Options: true, false
   run_plasmid:   true # Options: true, false
 
 mlst:
@@ -108,11 +110,11 @@ annotation:
   mincontiglen: 200        # Minimum contig length to annotate (bp)
   evalue: 1e-06           # E-value threshold for similarity searches
   extra: ""               # Additional Prokka command line options
-  outgroup_fasta: "resources/data/outgroup/outgroup.fasta" # Path to outgroup FASTA (leave empty if not used)
+  outgroup_fasta: "data/outgroup/outgroup.fasta" # Path to outgroup FASTA (leave empty if not used)
   outgroup_name: "outgroup" # Name for outgroup sample (used in annotation and downstream)
   
   # Examples:
-  # outgroup_gff: "resources/data/outgroup/outgroup.fasta"
+  # outgroup_gff: "data/outgroup/outgroup.fasta"
   # outgroup_name: "reference_ATCC"
   
   # Note: The outgroup should be an unannotated genome in fasta format

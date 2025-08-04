@@ -29,9 +29,9 @@ rule busco_completeness:
         full_table = "results/busco/{sample}/run_bacteria_odb10/full_table.tsv"
     log:
         "logs/busco/{sample}.log"
-    threads: 4
+    threads: 16
     resources:
-        mem_mb = 8000
+        mem_mb = 16000
     conda:
         "../envs/quast.yaml"
     shell:
@@ -56,7 +56,9 @@ rule quast_assembly_qc:
         stats = "results/assembly_qc/{sample}/report.txt"
     log:
         "logs/quast/{sample}.log"
-    threads: 4
+    threads: 16
+    resources:
+        mem_mb = 8000
     conda:
         "../envs/quast.yaml"
     shell:
@@ -76,9 +78,10 @@ rule multiqc_assembly:
     output:
         report = "results/assembly_multiqc/assembly_multiqc_report.html"
     log:
-        "logs/multiqc_assembly.log"
+        "logs/quast/multiqc_assembly.log"
     conda:
         "../envs/qc.yaml"
+    threads: 1
     shell:
         """
         multiqc --dirs {input.quast_reports} {input.busco_summaries} \
@@ -97,7 +100,8 @@ rule assembly_summary:
     output:
         summary = "results/assembly/assembly_summary.txt"
     log:
-        "logs/assembly_summary.log"
+        "logs/quast/assembly_summary.log"
+    threads: 1
     shell:
         """
         echo "Assembly Quality Assessment Summary" > {output.summary}

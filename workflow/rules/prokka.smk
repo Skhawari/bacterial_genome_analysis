@@ -26,9 +26,9 @@ rule prokka_annotation:
         outdir = "results/annotation/{sample}"
     log:
         "logs/annotation/{sample}.log"
-    threads: 8
+    threads: 16
     resources:
-        mem_mb = 8000
+        mem_mb = 12000
     conda:
         "../envs/prokka.yaml"
     shell:
